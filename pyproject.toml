@@ -1,0 +1,18 @@
+[project]
+name = "pho-gah-mage"
+version = "0.1.0"
+description = "Common image functions"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "opencv-python>=4.12.0.88",
+    "rawpy>=0.25.1",
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["pho_gah_mage"]
+package-dir = {"" = "src"}
