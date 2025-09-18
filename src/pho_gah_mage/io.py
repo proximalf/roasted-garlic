@@ -8,39 +8,65 @@ import rawpy
 from .types import RAW_FILES, SAVE_IMAGE_TYPES, SUPPORTED_IMAGE_TYPES, Image
 
 
-def load_raw_image(filepath: Path, convert_to_mono: bool = False, output_bits: int = 8) -> Image:
+def load_raw_image(image_file: Path, output_bits: int = 16) -> Image:
     """
-    Helper function loading raw image. Uses rawpy.
-
+    Helper function loading raw image. Use the libraw wrapper Rawpy.
+    `output_bits` defaults to 16-bit.
     """
-    img = rawpy.imread(str(filepath))
-    raw_image = img.postprocess(no_auto_bright=True, use_auto_wb=False, output_bps=output_bits)
-    if not convert_to_mono:
-        return raw_image
+    raw_processor = rawpy.imread(str(image_file))
+    
+    # Build Params object
+    p = rawpy._rawpy.Params()
+    p.no_auto_bright=True
+    p.use_auto_wb=False
+    p.user_flip=0
+    p.use_camera_wb=1
+    p.output_bps=output_bits
+    p.four_color_rgb=True
+    # These do not exist as a usable params within the postprocess function,
+    # however are used.
+    p.exp_correc = 1 
+    p.user_qual = 8
 
-    R = raw_image[:, :, 0]
-    G = raw_image[:, :, 1]
-    B = raw_image[:, :, 2]
+    raw_image = raw_processor.postprocess(params=p)
 
-    # This is just a simple conversion from https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.convert
-    grey_image = 0.2989 * R + 0.5870 * G + 0.1140 * B
+    return raw_image
 
-    return grey_image
-
-
-def load_image(filepath: Path, convert_to_mono: bool = False, bits: int = 8) -> Image:
+def convert_colour_image_to_mono(colour_image: Image) -> Image:
     """
-    Loads image for processing. Uses rawpy and opencv. Converts colour images to monochromatic.
+    Converts a colour image with 3 channels in the format of RGB, into a greyscale / mono image.
+    """
+    # This is just a simple factor conversion from 
+    # https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.convert
+    RED_FACTOR = 299/1000
+    GREEN_FACTOR = 587/1000
+    BLUE_FACTOR = 114/1000
+    R = colour_image[:, :, 0]
+    G = colour_image[:, :, 1]
+    B = colour_image[:, :, 2]
+    
+    mono = RED_FACTOR * R + GREEN_FACTOR * G + BLUE_FACTOR * B
+    
+    return mono
+
+def load_image(filepath: Path, convert_to_mono: bool = False, raw_bits: int = 16) -> Image:
+    """
+    Loads image from filepath. 
+    Uses rawpy for RAW files and opencv for everything else.
 
     Parameters
     ----------
     filepath: Path
         Path of image.
+    convert_to_mono: bool = False
+        Will return a greyscale / mono image if True, and loaded image is colour.
+    raw_bits: int = 16
+        Set the bit rate of a loaded raw image.
 
     Returns
     ---------
     image: Image
-        Loaded monochromatic image as an ndarray.
+        Loaded image as an ndarray.
     """
     if not filepath.exists():
         raise FileExistsError(f"File cannot be found - {filepath}")
@@ -49,16 +75,16 @@ def load_image(filepath: Path, convert_to_mono: bool = False, bits: int = 8) -> 
         raise TypeError(f"File not supported: {filepath}")
 
     if filepath.suffix in RAW_FILES:
-        image = load_raw_image(filepath, convert_to_mono, bits)
+        image = load_raw_image(filepath, raw_bits)
     else:
         image = cv.imread(str(filepath), cv.IMREAD_ANYCOLOR)
 
-        # Convert a colour image as cv reads colours in BGR format which isn't that common.
+        # Convert a colour image as cv reads colours in BGR format which isn't that intuitive.
         if image.shape[-1] == 3:
             image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
 
-        if convert_to_mono:
-            image = cv.cvtColor(image, cv.COLOR_RGB2GRAY)
+    if convert_to_mono and image.shape[-1] == 3:
+        image = convert_colour_image_to_mono(image)
 
     return image
 
