@@ -5,6 +5,7 @@ import cv2 as cv
 import numpy as np
 import rawpy
 
+from .convert import convert_array_to_mono
 from .types import RAW_FILES, SAVE_IMAGE_TYPES, SUPPORTED_IMAGE_TYPES, Image
 
 
@@ -31,23 +32,6 @@ def load_raw_image(image_file: Path, output_bits: int = 16) -> Image:
     raw_image = raw_processor.postprocess(params=p)
 
     return raw_image
-
-def convert_colour_image_to_mono(colour_image: Image) -> Image:
-    """
-    Converts a colour image with 3 channels in the format of RGB, into a greyscale / mono image.
-    """
-    # This is just a simple factor conversion from 
-    # https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.convert
-    RED_FACTOR = 299/1000
-    GREEN_FACTOR = 587/1000
-    BLUE_FACTOR = 114/1000
-    R = colour_image[:, :, 0]
-    G = colour_image[:, :, 1]
-    B = colour_image[:, :, 2]
-    
-    mono = RED_FACTOR * R + GREEN_FACTOR * G + BLUE_FACTOR * B
-    
-    return mono
 
 def load_image(filepath: Path, convert_to_mono: bool = False, raw_bits: int = 16) -> Image:
     """
@@ -84,7 +68,7 @@ def load_image(filepath: Path, convert_to_mono: bool = False, raw_bits: int = 16
             image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
 
     if convert_to_mono and image.shape[-1] == 3:
-        image = convert_colour_image_to_mono(image)
+        image = convert_array_to_mono(image)
 
     return image
 

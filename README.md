@@ -6,5 +6,5 @@ Collection of commonly used tools, assembled for my own usage at work.
 
 Add to dependencies:
 ```
-"pho-gah-mage @ git+https://github.com/proximalf/pho-gah-mage",
+"pennyio @ git+https://github.com/proximalf/roasted-garlic",
 ```

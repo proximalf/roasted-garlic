@@ -7,17 +7,16 @@ from .types import Image
 
 # Source: https://homepages.inf.ed.ac.uk/rbf/CVonline/LOCAL_COPIES/POYNTON1/ColorFAQ.html#RTFToC11
 # out of date for correct conversions for modern monitor colour space.
-WEIGHTS = {
-    "R": 0.2989,
-    "G": 0.5870,
-    "B": 0.1140,
-}
+# https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.convert
+RED_FACTOR = 299/1000
+GREEN_FACTOR = 587/1000
+BLUE_FACTOR = 114/1000
 
-
-def convert_3_channel_array_to_gray(image: Image) -> np.ndarray:
+def convert_array_to_mono(image: Image) -> np.ndarray:
     """
     Convert a 3 channel array into grayscale.
     """
+    dtype = image.dtype # Set to input dtype
     depth = len(image.shape)
 
     if depth == 2:
@@ -31,9 +30,8 @@ def convert_3_channel_array_to_gray(image: Image) -> np.ndarray:
     else:
         raise TypeError(f"Cannot convert, invalid array {image.shape}")
 
-    gray_image = WEIGHTS["R"] * R + WEIGHTS["G"] * G + WEIGHTS["B"] * B
-    return gray_image
-
+    mono = RED_FACTOR * R + GREEN_FACTOR * G + BLUE_FACTOR * B
+    return mono.astype(dtype)
 
 def convert_image(image: Image, type: Literal["mono", "colour", "color", "invert"]) -> Optional[Image]:
     """
