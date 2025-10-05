@@ -3,7 +3,6 @@ from typing import Any, Dict, List, Literal, Union
 import cv2 as cv
 from numpy import ndarray
 
-
 Image = Union[ndarray, cv.typing.MatLike]
 """
 Type alias for images, cv and numpy.
@@ -37,6 +36,7 @@ IMAGE_FILE_FILTER: Dict[str, str] = {
 """
 A filter to be used when saving images, could also cover loading.
 """
+
 
 def is_image(object: Any) -> bool:
     """

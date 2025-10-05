@@ -8,15 +8,16 @@ from .types import Image
 # Source: https://homepages.inf.ed.ac.uk/rbf/CVonline/LOCAL_COPIES/POYNTON1/ColorFAQ.html#RTFToC11
 # out of date for correct conversions for modern monitor colour space.
 # https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.convert
-RED_FACTOR = 299/1000
-GREEN_FACTOR = 587/1000
-BLUE_FACTOR = 114/1000
+RED_FACTOR = 299 / 1000
+GREEN_FACTOR = 587 / 1000
+BLUE_FACTOR = 114 / 1000
+
 
 def convert_array_to_mono(image: Image) -> np.ndarray:
     """
     Convert a 3 channel array into grayscale.
     """
-    dtype = image.dtype # Set to input dtype
+    dtype = image.dtype  # Set to input dtype
     depth = len(image.shape)
 
     if depth == 2:
@@ -33,6 +34,7 @@ def convert_array_to_mono(image: Image) -> np.ndarray:
     mono = RED_FACTOR * R + GREEN_FACTOR * G + BLUE_FACTOR * B
     return mono.astype(dtype)
 
+
 def convert_image(image: Image, type: Literal["mono", "colour", "color", "invert"]) -> Optional[Image]:
     """
     Converts image into either `"mono"` or `"colour"`
@@ -41,8 +43,8 @@ def convert_image(image: Image, type: Literal["mono", "colour", "color", "invert
     match type:
         case "mono":
             if image.shape[-1] != 3:
-                raise ValueError(f"Invalid shape of image: {image.shape} != 3") 
-            return cv.cvtColor(image, cv.COLOR_RGB2GRAY)
+                raise ValueError(f"Invalid shape of image: {image.shape} != 3")
+            return convert_array_to_mono(image)
         case "colour":
             if len(image.shape) != 2:
                 raise ValueError(f"Invalid shape of image: {image.shape} != 2")

@@ -1,6 +1,6 @@
 [project]
 name = "pennyio"
-version = "0.1.2"
+version = "0.2.0"
 description = "Common image functions"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -16,3 +16,17 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools]
 packages = ["pennyio"]
 package-dir = {"" = "src"}
+
+[tool.black]
+line-length = 120
+
+[tool.isort]
+profile = "black"
+honor_noqa = true
+color_output = true
+
+[dependency-groups]
+dev = [
+    "black>=25.9.0",
+    "isort>=6.1.0",
+]
