@@ -127,6 +127,10 @@ def save_image(
     if not filename.parent.exists():
         filename.parent.mkdir(parents=True)
 
+    # Convert image to BGR as cv will write in this format.
+    if image.shape[-1] == 3:
+        image = cv.cvtColor(image, cv.COLOR_RGB2BGR)
+
     if cmap is not None:
         image = cv.applyColorMap(image.astype(np.uint8), cmap)
 
