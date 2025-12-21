@@ -1,6 +1,6 @@
 [project]
 name = "pennyio"
-version = "0.2.0"
+version = "0.2.2"
 description = "Common image functions"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -30,3 +30,6 @@ dev = [
     "black>=25.9.0",
     "isort>=6.1.0",
 ]
+
+[project.optional-dependencies]
+qt = ["PySide6"]
