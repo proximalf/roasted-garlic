@@ -6,13 +6,15 @@ from PySide6.QtGui import QImage, QPixmap
 
 logger = logging.getLogger()
  
+BIT8 = 2**8-1
+BIT16 = 2**16-1
 
 def numpy_to_pixmap(array: np.ndarray) -> QPixmap:
     """
     Converts a numpy array to a QImage type and return as a QPixmap.
-    For grayscale, it should be (height, width). 
-    For RGBA (height, width, channels).
-
+    For grayscale, it should be (height, width).  
+    For RGBA (height, width, channels). 
+ 
     For 16-bit images, Qt expects an alpha channel, one will be appended if an image is provided with out one.
 
     QImage doesn't support natively float, the image will be converted to int8 if float16 else int16.
@@ -46,11 +48,13 @@ def numpy_to_pixmap(array: np.ndarray) -> QPixmap:
 
         if array.dtype == np.float16:
             if is_normal_array:
-                array *= 2**8-1
+                array *= BIT8
+            array = array.clip(0, BIT8)
             array= array.astype(np.uint8)
         else:
             if is_normal_array:
-                array *= 2**16-1
+                array *= BIT16
+            array = array.clip(0, BIT16)
             array= array.astype(np.uint16)
 
     # Check if the array is grayscale (2D) or color (3D)
@@ -59,7 +63,7 @@ def numpy_to_pixmap(array: np.ndarray) -> QPixmap:
     has_channels = depth > 2
     is_8bit = array.dtype == np.uint8
 
-    channels = 1 if not has_channels else array.shape[2]
+    channels = 1 if not has_channels else array.shape[2] 
     is_rgb = channels == 3
     has_alpha = channels == 4
 
@@ -87,7 +91,8 @@ def numpy_to_pixmap(array: np.ndarray) -> QPixmap:
         # This is the same as the Format_RGBA64 except alpha must always be 65535.
         qimage_format = QImage.Format.Format_RGBX64
         # Needs an alpha channel, so make it fully opaque
-        alpha = np.full((height, width, 1), 65535, dtype=np.uint16)  
+        alpha = np.full((height, width, 1), BIT16, dtype=np.uint16) 
+        array = array.astype(np.uint16)
         array = np.concatenate((array, alpha), axis=2)
 
     bytes_per_line = array.strides[0]
