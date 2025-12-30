@@ -1,6 +1,6 @@
 [project]
 name = "pennyio"
-version = "0.2.2"
+version = "0.2.5"
 description = "Common image functions"
 readme = "README.md"
 requires-python = ">=3.12"

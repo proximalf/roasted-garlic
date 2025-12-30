@@ -3,11 +3,13 @@ from typing import Any, Dict, List, Literal, Union
 import cv2 as cv
 from numpy import ndarray
 
+BIT8 = 2**8-1
+BIT16 = 2**16-1
+
 Image = Union[ndarray, cv.typing.MatLike]
 """
 Type alias for images, cv and numpy.
 """
-
 
 SUPPORTED_IMAGE_TYPES: List[str] = [".BMP", ".CR2", ".JPG", ".PNG", ".TIF", ".TIFF"]
 """

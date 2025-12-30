@@ -13,6 +13,9 @@ Add to dependencies:
 
 ## Functions
 
-### `numpy_to_qimage`
-Requires the package to be installed as `pip install pennyio[qt]`
-This function returns a `QImage` from a provided numpy array, if the display image is broken check the values of the array provided and the documentation of this function.
+### `determine_image_format`
+Function returns an ImageFormat Enum, which should help processing images of different dtypes, such as when plotting a histogram.
+
+### `image_to_pixmap`
+Requires the package to be installed as `uv pip install pennyio[qt]`
+This function returns a `QImage` from a provided numpy image array, if the displayed image is broken check the values of the array provided and the documentation of this function.

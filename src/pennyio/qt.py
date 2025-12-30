@@ -4,14 +4,22 @@ import numpy as np
 from PySide6.QtCore import Qt 
 from PySide6.QtGui import QImage, QPixmap
 
+from .types import Image, BIT16
+from .format import determine_image_format, ImageFormat
+from .convert import convert_float_to_uint
+
 logger = logging.getLogger()
- 
-BIT8 = 2**8-1
-BIT16 = 2**16-1
 
 def numpy_to_pixmap(array: np.ndarray) -> QPixmap:
     """
-    Converts a numpy array to a QImage type and return as a QPixmap.
+    This function is being renamed, to image_to_pixmap.
+    """
+    print("This function is being renamed.")
+    return image_to_pixmap(array)
+
+def image_to_pixmap(image: Image) -> QPixmap:
+    """
+    Converts a numpy image array to a QImage type and return as a QPixmap.
     For grayscale, it should be (height, width).  
     For RGBA (height, width, channels). 
  
@@ -32,71 +40,52 @@ def numpy_to_pixmap(array: np.ndarray) -> QPixmap:
     ----------
     image: QPixmap
         Image as a QPixmap to display within a qt app.
+
+    Raises
+    ----------
+    Exception if image is not 2D
+    TypeError if image has more than 4 channels.
     """ 
-    if not array.flags.c_contiguous: # Make array contiguous
-        array = np.ascontiguousarray(array)
+    if not image.flags.c_contiguous: # Make array contiguous
+        image = np.ascontiguousarray(image)
 
-    height, width = array.shape[:2]
+    height, width = image.shape[:2]
 
-    logger.debug(f"Converting ndarray to qimage - shape = {array.shape} dtype = {array.dtype}")
+    image_format = determine_image_format(image)
 
-    if np.issubdtype(array.dtype, np.floating):
-        is_normal_array = array.max() <= 1.0
-        
-        if is_normal_array:
-            array = np.clip(array, 0.0, 1.0)
+    logger.debug(f"Converting image np array to qimage {image.dtype =} - {image_format =}")
 
-        if array.dtype == np.float16:
-            if is_normal_array:
-                array *= BIT8
-            array = array.clip(0, BIT8)
-            array= array.astype(np.uint8)
-        else:
-            if is_normal_array:
-                array *= BIT16
-            array = array.clip(0, BIT16)
-            array= array.astype(np.uint16)
+    if image_format in (ImageFormat.MonoFloat, ImageFormat.ColourFloat, ImageFormat.AlphaFloat):
+        image = convert_float_to_uint(image, image_format)
+        image_format = determine_image_format(image)
 
-    # Check if the array is grayscale (2D) or color (3D)
-    depth = array.ndim
-    is_grayscale = depth == 2
-    has_channels = depth > 2
-    is_8bit = array.dtype == np.uint8
-
-    channels = 1 if not has_channels else array.shape[2] 
-    is_rgb = channels == 3
-    has_alpha = channels == 4
-
-    if depth < 2:
-        raise TypeError(f"Unsupported array shape: {array.shape}")
-
-    if channels > 4:
-            raise TypeError(f"Unsupported number of channels: {channels}")
-
-    # Default as RGBA64.
-    qimage_format = QImage.Format.Format_RGBA64
-
-    if is_8bit: 
-        if is_rgb: 
-            qimage_format = QImage.Format.Format_RGB888
-        if has_alpha:
-            qimage_format = QImage.Format.Format_RGBA8888 
-        if is_grayscale:
+    match image_format:
+        case ImageFormat.Mono8:
             qimage_format = QImage.Format.Format_Grayscale8
-
-    elif is_grayscale:  # Grayscale    
-        qimage_format = QImage.Format.Format_Grayscale16
         
-    elif is_rgb:
-        # This is the same as the Format_RGBA64 except alpha must always be 65535.
-        qimage_format = QImage.Format.Format_RGBX64
-        # Needs an alpha channel, so make it fully opaque
-        alpha = np.full((height, width, 1), BIT16, dtype=np.uint16) 
-        array = array.astype(np.uint16)
-        array = np.concatenate((array, alpha), axis=2)
+        case ImageFormat.Mono16:
+            qimage_format = QImage.Format.Format_Grayscale16
+        
+        case ImageFormat.Colour8:
+            qimage_format = QImage.Format.Format_RGB888
+        
+        case ImageFormat.Alpha8:
+            qimage_format = QImage.Format.Format_RGBA8888 
+        
+        case ImageFormat.Colour16:
+            # This is the same as the Format_RGBA64 except alpha must always be 65535.
+            qimage_format = QImage.Format.Format_RGBX64
+            # Needs an alpha channel, so make it fully opaque
+            alpha = np.full((height, width, 1), BIT16, dtype=np.uint16) 
+            image = image.astype(np.uint16)
+            image = np.concatenate((image, alpha), axis=2)
+        
+        case _:
+            # Default as RGBA64.
+            qimage_format = QImage.Format.Format_RGBA64
 
-    bytes_per_line = array.strides[0]
-    qimage = QImage(array.data, width, height, bytes_per_line, qimage_format) 
+    bytes_per_line = image.strides[0]
+    qimage = QImage(image.data, width, height, bytes_per_line, qimage_format) 
 
     pixmap = QPixmap.fromImage(qimage, Qt.ImageConversionFlag.ColorOnly) 
     return pixmap
