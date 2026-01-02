@@ -1,4 +1,4 @@
-from typing import Literal, Tuple, Union
+from typing import Literal, Tuple, Union, NamedTuple
 
 import numpy as np
 
@@ -60,3 +60,15 @@ def flip_image(image: Image, direction: Literal["UpDown", "LeftRight"]) -> Image
     """
     axis = 0 if direction == "UpDown" else 1
     return np.flip(image, axis)
+
+class Histogram(NamedTuple):
+    data: np.ndarray
+    bin_edges: np.ndarray
+
+def calculate_histogram(image: Image, bins = 2**8, max_value = 2**8) -> Histogram:
+    """
+    A wrapper around numpy histogram, with some defaults.
+    """
+    hist, bin_edges = np.histogram(image.ravel(), bins=bins, range=(0, max_value))
+    # Realign bin_edges.
+    return Histogram(hist, bin_edges[:-1])
