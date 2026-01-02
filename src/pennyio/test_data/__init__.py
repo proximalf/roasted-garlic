@@ -1,19 +1,20 @@
 import logging
+from pathlib import Path
+from typing import Callable, Iterator, Optional, Tuple
+
 import numpy as np
 
-from typing import Tuple, Callable, Optional, Iterator
-from pathlib import Path
-
+from ..convert import convert_uint_to_normalised_float
 from ..io import load_image
 from ..types import Image
-from ..convert import convert_uint_to_normalised_float
 
 logger = logging.getLogger()
 
 DEBUG_IMAGE = Path(__file__).parent / "image.png"
 
-BIT_8 = 2**8-1
-BIT_16 = 2**16-1
+BIT_8 = 2**8 - 1
+BIT_16 = 2**16 - 1
+
 
 def draw_square(image: Image, value: Tuple[float | int, ...] | float | int, size_ratio: float = 0.5) -> Image:
     """
@@ -27,7 +28,6 @@ def draw_square(image: Image, value: Tuple[float | int, ...] | float | int, size
             if len(value) != image.shape[2]:
                 raise Exception(f"Value must be an array equal to number of channels in image.")
 
-
     h, w = image.shape[:2]
     size = int(min(h, w) * size_ratio)
 
@@ -37,17 +37,24 @@ def draw_square(image: Image, value: Tuple[float | int, ...] | float | int, size
     image[y0:y1, x0:x1] = value
     return image
 
-def generate_image(dtype: np.typing.DTypeLike, value: float | int | Tuple[float | int, ...], shape: Tuple[int, ...] = (256, 256), alpha: Optional[float | int] = None) -> np.ndarray:
+
+def generate_image(
+    dtype: np.typing.DTypeLike,
+    value: float | int | Tuple[float | int, ...],
+    shape: Tuple[int, ...] = (256, 256),
+    alpha: Optional[float | int] = None,
+) -> np.ndarray:
     """
     Generate an image of a given dtype, with a square drawn in the centre of the image of a given value.
     """
 
     image = np.zeros(shape=shape, dtype=dtype)
-    
+
     if alpha and image.ndim == 3 and image.shape[-1] == 4:
         image[..., 3] = alpha
-    
-    return draw_square(image, value=value)    
+
+    return draw_square(image, value=value)
+
 
 class TestImages:
     """
@@ -56,6 +63,7 @@ class TestImages:
     - Colour
     - Alpha
     """
+
     # Grey Images
     @staticmethod
     def grey8() -> Image:

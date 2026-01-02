@@ -4,8 +4,8 @@ from typing import Literal, Optional
 import cv2 as cv
 import numpy as np
 
-from .types import Image, BIT8, BIT16
-from .format import determine_image_format, ImageFormat
+from .format import ImageFormat, determine_image_format
+from .types import BIT8, BIT16, Image
 
 logger = logging.getLogger()
 
@@ -65,16 +65,17 @@ def convert_image(image: Image, type: Literal["mono", "colour", "color", "invert
         case _:
             raise KeyError(f"Invalid type - {type}")
 
+
 def convert_uint_to_normalised_float(image: Image) -> Image:
     """
     Crudely convert image of dtype uint8 | uint16 to float32.
-    """  
+    """
     if not np.issubdtype(image.dtype, np.integer):
         raise Exception("Can only cast uint to float")
-    
-    max_value = np.iinfo(image.dtype).max    
-    return image.astype(np.float16) / max_value 
-    
+
+    max_value = np.iinfo(image.dtype).max
+    return image.astype(np.float16) / max_value
+
 
 def convert_float_to_uint(image: Image, image_format: ImageFormat | None = None) -> Image:
     """
@@ -90,29 +91,29 @@ def convert_float_to_uint(image: Image, image_format: ImageFormat | None = None)
 
     if image_format not in (ImageFormat.MonoFloat, ImageFormat.ColourFloat, ImageFormat.AlphaFloat):
         raise Exception(f"Image format is not suitable for converting into uint - {image_format}")
-    
+
     # scale if a normal image
-    is_normal_image = image.max() <= 1.0       
-    
+    is_normal_image = image.max() <= 1.0
+
     if is_normal_image:
         # Clip off values below zero, and if it is normalised, it should be below 1 regardless.
         image = np.clip(image, 0.0, 1.0)
-    
+
         if image.dtype == np.float32:
             image *= BIT16
         else:
             image *= BIT8
-            
-        logger.debug(f"Image has been scaled - this is probably why the image looks weird.") 
+
+        logger.debug(f"Image has been scaled - this is probably why the image looks weird.")
 
     # Clip and convert to suitable dtype
     if image.dtype == np.float32:
         image = np.clip(image, 0, BIT16)
-        image= image.astype(np.uint16)
+        image = image.astype(np.uint16)
     else:
         if image.max() > BIT8:
-            logger.warning(f"Image has been clipped - if the image is all white, check the dtype of the image") 
+            logger.warning(f"Image has been clipped - if the image is all white, check the dtype of the image")
         image = np.clip(image, 0, BIT8)
         image = image.astype(np.uint8)
-    
+
     return image
