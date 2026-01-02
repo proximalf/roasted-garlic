@@ -11,6 +11,7 @@ from ..types import Image
 logger = logging.getLogger()
 
 DEBUG_IMAGE = Path(__file__).parent / "image.png"
+RAW_IMAGE = Path(__file__).parents[4] / "test-images/600 900 4000.CR2"
 
 BIT_8 = 2**8 - 1
 BIT_16 = 2**16 - 1
@@ -126,3 +127,8 @@ class TestImages:
     def float_jb() -> Image:
         """JB float image"""
         return convert_uint_to_normalised_float(TestImages.colour())
+
+    @staticmethod
+    def raw_cr2() -> Image:
+        """Its fucking raw"""
+        return load_image(RAW_IMAGE)

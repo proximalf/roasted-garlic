@@ -68,10 +68,9 @@ def plot_image_histogram(axes: Axes, image: Image, plot_mono: bool = True, flip:
         axes.add_line(plot_channels.G)
         axes.add_line(plot_channels.B)
 
-    bins, y_max = update_histogram_plot_channels(plot_channels, image, image_format, flip=flip)
+    x_max, y_max = update_histogram_plot_channels(plot_channels, image, image_format, flip=flip)
 
-    left, right = 0, bins
-    axes.set_xlim(left, right)
+    axes.set_xlim(0, x_max)
     axes.set_ylim(0, y_max)
 
     return plot_channels
@@ -128,33 +127,36 @@ def update_histogram_plot_channels(
         else:
             x_max = 1.0
 
-    # If mono only update the only channel
+    # If mono only update the only channel 
+    # the image will not need converting.
     if plot_channels.mono:
         y_max: int | float = update_plot_channel(plot_channels.M, image, bins, x_max, flip=flip)
-        return bins, y_max
+    
+    else:
+        # Plot colour channels
+        y_max = []
+        image_channels = Channels.from_image(image)
 
-    # Plot colour channels
-    y_max = []
-    image_channels = Channels.from_image(image)
+        # Red
+        R_max = update_plot_channel(plot_channels.R, image_channels.R, bins, x_max, flip=flip)
+        y_max.append(R_max)
 
-    # Red
-    R_max = update_plot_channel(plot_channels.R, image_channels.R, bins, x_max, flip=flip)
-    y_max.append(R_max)
+        # Green
+        G_max = update_plot_channel(plot_channels.G, image_channels.G, bins, x_max, flip=flip)
+        y_max.append(G_max)
 
-    # Green
-    G_max = update_plot_channel(plot_channels.G, image_channels.G, bins, x_max, flip=flip)
-    y_max.append(G_max)
+        # Blue
+        B_max = update_plot_channel(plot_channels.B, image_channels.B, bins, x_max, flip=flip)
+        y_max.append(B_max)
 
-    # Blue
-    B_max = update_plot_channel(plot_channels.B, image_channels.B, bins, x_max, flip=flip)
-    y_max.append(B_max)
+        # Mono
+        # convert the colour image to get the mono channel.
+        if plot_mono:
+            M_max = update_plot_channel(plot_channels.M, convert.convert_array_to_mono(image), bins, x_max, flip=flip)
+            y_max.append(M_max)
 
-    # Mono
-    if plot_mono:
-        M_max = update_plot_channel(plot_channels.M, convert.convert_array_to_mono(image), bins, x_max, flip=flip)
-        y_max.append(M_max)
 
     if flip:
-        return np.max(y_max), bins
+        return np.max(y_max), x_max
 
-    return bins, np.max(y_max)
+    return x_max, np.max(y_max)

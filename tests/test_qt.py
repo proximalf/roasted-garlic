@@ -32,6 +32,9 @@ TEST_IMAGES: Dict[str, np.ndarray] = {
     "rgba16": TestImages.rgba16(),
     "rgbaf16": TestImages.rgbaf16(),
     "rgba32": TestImages.rgbaf32(),
+    "raw_cr2": TestImages.raw_cr2(),
+    "float_jb": TestImages.float_jb(),
+    "colour": TestImages.colour(),
 }
 
 
@@ -72,6 +75,7 @@ def test_image_to_pixmap():
     app = QApplication(sys.argv)
 
     window = Window(TEST_IMAGES)
+    window.setMaximumSize(500, 500)
     window.show()
     app.exec()
 
