@@ -2,11 +2,14 @@ from matplotlib.lines import Line2D
 
 from typing import Iterable
 
-from pennyio import Image, convert
-
 FIXED_HEIGHT = 300
 
 class PlotChannels:
+    """
+    Grouping common image channels together to aid with plotting.
+
+    Use `CHANNEL.set_data(xydata)` to set line data.
+    """
 
     def __init__(self, mono: bool = False) -> None:    
         self._mono: bool = mono # Readonly.

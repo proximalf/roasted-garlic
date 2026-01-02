@@ -1,4 +1,5 @@
-from typing import Tuple
+from matplotlib.lines import Line2D
+from typing import Tuple, NamedTuple
 from enum import Enum
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
@@ -6,19 +7,60 @@ import numpy as np
 
 from pennyio import Image, convert
 from pennyio.format import determine_image_format, ImageFormat, Channels
-from pennyio.operations import calculate_histogram
 
 from .channels import PlotChannels
 
 
-def initialise_plot(axes: Axes, image: Image) -> PlotChannels:
+class Histogram(NamedTuple):
     """
-    Setup line profile plot on widget
+    Histogram data and bin-edge arrays.
+    """
+    data: np.ndarray
+    bin_edges: np.ndarray
+
+def calculate_histogram(image: Image, bins: int = 2**8, max_value: int | float = 2**8) -> Histogram:
+    """
+    A wrapper around numpy histogram, with some defaults.
+    
+    Parameters
+    ----------
+    image: Image
+    bins: int  
+        The number of equal width bins to use.
+    max_value: int | float
+        The maximum value of the range for the histogram.
+
+    Returns
+    ----------
+    Histogram
+        data: ...
+        bin_edges: ...
+
+    """
+    hist, bin_edges = np.histogram(
+        image.ravel(), # faster than flatten
+        bins=bins, # equal width of number bins   
+        range=(0, max_value) # range is set to 0 because we expect images.
+        )
+    return Histogram(
+        data=hist, 
+        bin_edges=bin_edges[:-1] # Realign bin_edges.
+        )
+
+
+def plot_image_histogram(axes: Axes, image: Image, plot_mono: bool = True, flip: bool = False) -> PlotChannels:
+    """
+    Plot histogram to a given axes.
+    Image format is determined, if passed an RGB image, it will plot 4 lines R,G,B,Mono, 
+    set `plot_mono` to False to only plot the colours.
+
+    Returns
+    ----------
+    PlotChannels
+        The mpl line objects are stored in this class.
     """
     image_format = determine_image_format(image)
-    print(image_format)
     plot_channels = PlotChannels(mono=image_format.is_mono())
-    print(plot_channels.mono)
 
     axes.add_line(plot_channels.M)
     if not plot_channels.mono:
@@ -26,7 +68,7 @@ def initialise_plot(axes: Axes, image: Image) -> PlotChannels:
         axes.add_line(plot_channels.G)
         axes.add_line(plot_channels.B)
 
-    bins, max = update_plot_channels(plot_channels, image, image_format)
+    bins, max = update_histogram_plot_channels(plot_channels, image, image_format, flip=flip)
 
     left, right = 0, bins
     axes.set_xlim(left, right)
@@ -35,10 +77,33 @@ def initialise_plot(axes: Axes, image: Image) -> PlotChannels:
 
     return plot_channels
 
-
-def update_plot_channels(plot_channels: PlotChannels, image: Image, image_format: ImageFormat | None = None) -> Tuple[int, int | float]:
+def update_plot_channel(channel: Line2D, image_channel: Image, bins: int, max_value: int | float, flip: bool = False) -> int | float:
     """
-    This function updates the line data on a given PlotChannels object.
+    Conveinience function for updating a PlotChannel line. This function calculates the histogram of an image.
+    """
+    hist = calculate_histogram(image_channel, bins, max_value)
+    if flip:
+        channel.set_xdata(hist.data)
+        channel.set_ydata(hist.bin_edges)
+    else:
+        channel.set_xdata(hist.bin_edges)
+        channel.set_ydata(hist.data)
+        
+    # Return the largest value to size the plot.
+    return hist.data.max()
+
+def update_histogram_plot_channels(plot_channels: PlotChannels, image: Image, image_format: ImageFormat | None = None, plot_mono: bool = True, flip: bool = False) -> Tuple[int | float, int | float]:
+    """
+    This function will calulate the images histogram and sets the line data for PlotChannels.
+
+    Set `plot_mono` to False to disable default mono plot.
+
+    Returns
+    ----------
+    bins: int
+        The
+    y_max: int | float
+        The largest value 
     """
     if image_format is None:
         image_format = determine_image_format(image)
@@ -46,78 +111,40 @@ def update_plot_channels(plot_channels: PlotChannels, image: Image, image_format
     bins = image_format.get_bins()
 
     if not image_format.is_float():
-        max_value = bins
+        x_max = bins
     else:
-        if (max_value := image.max()) > 1:
-            max_value = max_value
+        if (x_max := image.max()) > 1:
+            x_max = x_max
         else:
-            max_value = 1.0
+            x_max = 1.0
 
     # If mono only update the only channel
     if plot_channels.mono:
-        hist, bin_edges = calculate_histogram(image, bins, max_value)
-        plot_channels.M.set_xdata(bin_edges)
-        plot_channels.M.set_ydata(hist)
-        print(bins, hist.max())
-        return bins , hist.max()
+        y_max: int | float = update_plot_channel(plot_channels.M, image, bins, x_max, flip=flip)
+        return bins , y_max
     
-    max = []
+    # Plot colour channels
+    y_max = []
     image_channels = Channels.from_image(image)
 
     # Red
-    hist, bin_edges = calculate_histogram(image_channels.R, bins, max_value)
-    plot_channels.R.set_xdata(bin_edges)
-    plot_channels.R.set_ydata(hist)
-
-    max.append(hist.max())
+    R_max = update_plot_channel(plot_channels.R, image_channels.R, bins, x_max, flip=flip)
+    y_max.append(R_max)
 
     # Green
-    hist, bin_edges = calculate_histogram(image_channels.G, bins, max_value)
-    plot_channels.G.set_xdata(bin_edges)
-    plot_channels.G.set_ydata(hist)
-
-    max.append(hist.max())
+    G_max = update_plot_channel(plot_channels.G, image_channels.G, bins, x_max, flip=flip)
+    y_max.append(G_max)
 
     # Blue
-    hist, bin_edges = calculate_histogram(image_channels.B, bins, max_value)
-    plot_channels.B.set_xdata(bin_edges)
-    plot_channels.B.set_ydata(hist)
-
-    max.append(hist.max())
+    B_max = update_plot_channel(plot_channels.B, image_channels.B, bins, x_max, flip=flip)
+    y_max.append(B_max)
 
     # Mono
-    hist, bin_edges = calculate_histogram(convert.convert_array_to_mono(image), bins, max_value)
-    plot_channels.M.set_xdata(bin_edges)
-    plot_channels.M.set_ydata(hist)
+    if plot_mono:
+        M_max = update_plot_channel(plot_channels.M, convert.convert_array_to_mono(image), bins, x_max, flip=flip)
+        y_max.append(M_max)
 
-    max.append(hist.max())
+    if flip:
+        return np.max(y_max), bins
 
-    return bins, np.max(max)
-
-
-class PlotOrientation(Enum):
-    Horizontal = 0
-    Vertical = 1
-
-class HistogramPlot:
-    """
-    A histogram image plot.
-    """
-
-    PAD = 1.2
-
-    def __init__(self, axes: Axes, image: Image) -> None:        
-        self.axes = axes
-        self.channels = initialise_plot(axes, image)
-        
-        self.orientation = PlotOrientation.Vertical
-        
-    def update_plot_data(self, image: Image) -> None:
-        """
-        Sets the data to display on both plot items
-        """
-        bins, max = update_plot_channels(self.channels, image)
-
-        left, right = 0, bins
-        self.axes.set_xlim(left, right)
-        self.axes.set_ylim(0, max*self.PAD)
+    return bins, np.max(y_max)
