@@ -9,6 +9,25 @@ from .types import Image
 
 logger = logging.getLogger()
 
+class Channels(NamedTuple):
+    """
+    Represent a given image as individual RGB channels.
+    """
+    R: Image
+    G: Image
+    B: Image
+
+    @staticmethod
+    def from_image(image: Image) -> "Channels":
+        try:
+            R = image[:, :, 0]
+            G = image[:, :, 1]
+            B = image[:, :, 2]
+        except:
+            raise ValueError(f"Cannot convert image of shape: {image.shape} into Channels.")
+
+        return Channels(R, G, B)
+
 class ImageFormat(Enum):
     Mono8 = "mono-8"
     Mono16 ="mono-16"
