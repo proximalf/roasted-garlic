@@ -1,6 +1,7 @@
 from . import convert, operations
 from .io import load_image, save_image
 from .types import Image, is_image
+from .format import Channels, ImageFormat, determine_image_format
 
 try:
     # if Qt isn't installed this will fail
