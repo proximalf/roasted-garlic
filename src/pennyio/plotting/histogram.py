@@ -1,12 +1,13 @@
-from matplotlib.lines import Line2D
-from typing import Tuple, NamedTuple
 from enum import Enum
+from typing import NamedTuple, Tuple
+
+import numpy as np
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
-import numpy as np
+from matplotlib.lines import Line2D
 
 from pennyio import Image, convert
-from pennyio.format import determine_image_format, ImageFormat, Channels
+from pennyio.format import Channels, ImageFormat, determine_image_format
 
 from .channels import PlotChannels
 
@@ -15,17 +16,19 @@ class Histogram(NamedTuple):
     """
     Histogram data and bin-edge arrays.
     """
+
     data: np.ndarray
     bin_edges: np.ndarray
+
 
 def calculate_histogram(image: Image, bins: int = 2**8, max_value: int | float = 2**8) -> Histogram:
     """
     A wrapper around numpy histogram, with some defaults.
-    
+
     Parameters
     ----------
     image: Image
-    bins: int  
+    bins: int
         The number of equal width bins to use.
     max_value: int | float
         The maximum value of the range for the histogram.
@@ -38,20 +41,17 @@ def calculate_histogram(image: Image, bins: int = 2**8, max_value: int | float =
 
     """
     hist, bin_edges = np.histogram(
-        image.ravel(), # faster than flatten
-        bins=bins, # equal width of number bins   
-        range=(0, max_value) # range is set to 0 because we expect images.
-        )
-    return Histogram(
-        data=hist, 
-        bin_edges=bin_edges[:-1] # Realign bin_edges.
-        )
+        image.ravel(),  # faster than flatten
+        bins=bins,  # equal width of number bins
+        range=(0, max_value),  # range is set to 0 because we expect images.
+    )
+    return Histogram(data=hist, bin_edges=bin_edges[:-1])  # Realign bin_edges.
 
 
 def plot_image_histogram(axes: Axes, image: Image, plot_mono: bool = True, flip: bool = False) -> PlotChannels:
     """
     Plot histogram to a given axes.
-    Image format is determined, if passed an RGB image, it will plot 4 lines R,G,B,Mono, 
+    Image format is determined, if passed an RGB image, it will plot 4 lines R,G,B,Mono,
     set `plot_mono` to False to only plot the colours.
 
     Returns
@@ -73,11 +73,14 @@ def plot_image_histogram(axes: Axes, image: Image, plot_mono: bool = True, flip:
     left, right = 0, bins
     axes.set_xlim(left, right)
     PAD = 1.2
-    axes.set_ylim(0, max*PAD)
+    axes.set_ylim(0, max * PAD)
 
     return plot_channels
 
-def update_plot_channel(channel: Line2D, image_channel: Image, bins: int, max_value: int | float, flip: bool = False) -> int | float:
+
+def update_plot_channel(
+    channel: Line2D, image_channel: Image, bins: int, max_value: int | float, flip: bool = False
+) -> int | float:
     """
     Conveinience function for updating a PlotChannel line. This function calculates the histogram of an image.
     """
@@ -88,11 +91,18 @@ def update_plot_channel(channel: Line2D, image_channel: Image, bins: int, max_va
     else:
         channel.set_xdata(hist.bin_edges)
         channel.set_ydata(hist.data)
-        
+
     # Return the largest value to size the plot.
     return hist.data.max()
 
-def update_histogram_plot_channels(plot_channels: PlotChannels, image: Image, image_format: ImageFormat | None = None, plot_mono: bool = True, flip: bool = False) -> Tuple[int | float, int | float]:
+
+def update_histogram_plot_channels(
+    plot_channels: PlotChannels,
+    image: Image,
+    image_format: ImageFormat | None = None,
+    plot_mono: bool = True,
+    flip: bool = False,
+) -> Tuple[int | float, int | float]:
     """
     This function will calulate the images histogram and sets the line data for PlotChannels.
 
@@ -103,7 +113,7 @@ def update_histogram_plot_channels(plot_channels: PlotChannels, image: Image, im
     bins: int
         The
     y_max: int | float
-        The largest value 
+        The largest value
     """
     if image_format is None:
         image_format = determine_image_format(image)
@@ -121,8 +131,8 @@ def update_histogram_plot_channels(plot_channels: PlotChannels, image: Image, im
     # If mono only update the only channel
     if plot_channels.mono:
         y_max: int | float = update_plot_channel(plot_channels.M, image, bins, x_max, flip=flip)
-        return bins , y_max
-    
+        return bins, y_max
+
     # Plot colour channels
     y_max = []
     image_channels = Channels.from_image(image)

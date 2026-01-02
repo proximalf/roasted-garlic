@@ -1,4 +1,4 @@
-from typing import Literal, Tuple, Union, NamedTuple
+from typing import Literal, NamedTuple, Tuple, Union
 
 import numpy as np
 

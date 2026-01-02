@@ -17,7 +17,7 @@ def load_raw_image(image_file: Path, output_bits: int = 16) -> Image:
     raw_processor = rawpy.imread(str(image_file))
 
     # Build Params object
-    p = rawpy._rawpy.Params() # type: ignore # This is valid.
+    p = rawpy._rawpy.Params()  # type: ignore # This is valid.
     p.no_auto_bright = True
     p.use_auto_wb = False
     p.user_flip = 0
@@ -81,7 +81,7 @@ def save_image(
     image: Image,
     cmap: Optional[int] = None,
     filetype: Union[str, SAVE_IMAGE_TYPES] = "PNG",
-    use_default: bool = True
+    use_default: bool = True,
 ) -> None:
     """
     Save image helper function. Filename is appended with filetype.
@@ -102,9 +102,9 @@ def save_image(
     filetype: Union[str, Literal["BMP", "PNG", "TIFF", "JPG"]]
         Filetype to save image as, this is TIFF as default.z
     use_default: bool
-        Setting this to True forces the default filetype PNG to be used. 
+        Setting this to True forces the default filetype PNG to be used.
         No error will be raised.
-    
+
     Raises
     ----------
     TypeError

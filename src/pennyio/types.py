@@ -3,8 +3,8 @@ from typing import Any, Dict, List, Literal, Union
 import cv2 as cv
 from numpy import ndarray
 
-BIT8 = 2**8-1
-BIT16 = 2**16-1
+BIT8 = 2**8 - 1
+BIT16 = 2**16 - 1
 
 Image = Union[ndarray, cv.typing.MatLike]
 """

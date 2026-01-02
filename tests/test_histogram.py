@@ -1,7 +1,11 @@
 from matplotlib.figure import Figure
+
+from pennyio.plotting.histogram import (
+    plot_image_histogram,
+    update_histogram_plot_channels,
+)
 from pennyio.test_data import TestImages
 
-from pennyio.plotting.histogram import plot_image_histogram, update_histogram_plot_channels
 
 def main():
     image = TestImages.colour()
