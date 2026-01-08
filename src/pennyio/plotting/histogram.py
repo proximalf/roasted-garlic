@@ -72,6 +72,8 @@ def plot_image_histogram(axes: Axes, image: Image, plot_mono: bool = True, flip:
 
     axes.set_xlim(0, x_max)
     axes.set_ylim(0, y_max)
+    plot_channels.xmax = x_max
+    plot_channels.ymax = y_max
 
     return plot_channels
 

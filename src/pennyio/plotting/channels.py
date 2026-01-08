@@ -16,6 +16,8 @@ class PlotChannels:
         self._mono: bool = mono  # Readonly.
 
         self.M = Line2D([], [], label="Mono", color="black")
+        self.xmax: int | float = 0
+        self.ymax: int | float = 0
 
         if self.mono:
             return  # Do not initialise other colours.
