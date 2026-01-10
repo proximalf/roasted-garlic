@@ -79,18 +79,30 @@ def plot_image_histogram(axes: Axes, image: Image, plot_mono: bool = True, flip:
 
 
 def update_plot_channel(
-    channel: Line2D, image_channel: Image, bins: int, max_value: int | float, flip: bool = False
+    channel: Line2D, image_channel: Image, bins: int, max_value: int | float, flip: bool = False, interpolate: bool = True
 ) -> int | float:
     """
     Conveinience function for updating a PlotChannel line. This function calculates the histogram of an image.
+
+    Flags:
+    - flip: plotted as y,x rather than x,y
+    - interpolate: Set the false to raw data, interpolation is only to remove 0 values on arrays over 1000 items
     """
     hist = calculate_histogram(image_channel, bins, max_value)
+    
+    data = hist.data
+    if len(hist.data) > 1000:
+        # If length of data is too long, interpolate so 0 values don't cloud the plot.
+        condition = np.where(data != 0)
+        data = np.interp(hist.bin_edges, hist.bin_edges[condition], data[condition])
+
+
     if flip:
-        channel.set_xdata(hist.data)
+        channel.set_xdata(data)
         channel.set_ydata(hist.bin_edges)
     else:
         channel.set_xdata(hist.bin_edges)
-        channel.set_ydata(hist.data)
+        channel.set_ydata(data)
 
     # Return the largest value to size the plot.
     return hist.data.max()
