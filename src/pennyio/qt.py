@@ -15,7 +15,7 @@ def numpy_to_pixmap(array: np.ndarray) -> QPixmap:
     """
     This function is being renamed, to image_to_pixmap.
     """
-    print("This function is being renamed.")
+    logger.warning("This function is being renamed.")
     return image_to_pixmap(array)
 
 
