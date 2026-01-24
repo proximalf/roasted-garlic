@@ -51,7 +51,8 @@ class ImageFormat(Enum):
         return self in (ImageFormat.MonoFloat, ImageFormat.ColourFloat, ImageFormat.AlphaFloat)
 
     def is_colour(self) -> bool:
-        return self in (ImageFormat.Colour8, ImageFormat.Colour16, ImageFormat.ColourFloat)
+        """If image is alpha it must be colour."""
+        return self in (ImageFormat.Colour8, ImageFormat.Colour16, ImageFormat.ColourFloat) or self.is_alpha()
 
     def is_alpha(self) -> bool:
         return self in (ImageFormat.Alpha8, ImageFormat.Alpha16, ImageFormat.AlphaFloat)
