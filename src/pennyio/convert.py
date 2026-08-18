@@ -39,14 +39,17 @@ def convert_array_to_mono(image: Image) -> np.ndarray:
     return mono.astype(dtype)
 
 
-def convert_image(image: Image, type: Literal["mono", "colour", "color", "invert"]) -> Image:
+def convert_image(image: Image, type: Literal["mono", "colour", "color", "invert"], silent: bool = False) -> Image:
     """
     Converts image into either `"mono"` or `"colour"`
     Will return `None` if Image cannot be converted.
+    Set silent to True to ignore and return invalid image.
     """
     match type:
         case "mono":
             if image.shape[-1] != 3:
+                if silent:
+                    return image # Return if silent
                 raise ValueError(f"Invalid shape of image: {image.shape} != 3")
             return convert_array_to_mono(image)
         case "colour":
