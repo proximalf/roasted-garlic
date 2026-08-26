@@ -134,3 +134,14 @@ def determine_image_format(image: Image) -> ImageFormat:
         else:
             # If cannot be determined then it must be a colour float type.
             return ImageFormat.ColourFloat
+
+def is_image(array: np.ndarray) -> bool:
+    """
+    Check if object is a valid image.
+    """
+    try:
+        # as long as it passes this function the array must be an image.
+        _= determine_image_format(array)
+        return True
+    except:
+        return False

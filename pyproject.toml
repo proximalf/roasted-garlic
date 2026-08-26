@@ -1,6 +1,6 @@
 [project]
 name = "pennyio"
-version = "0.2.7"
+version = "0.3.1"
 description = "Common image functions"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -11,12 +11,11 @@ dependencies = [
 ]
 
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.setuptools]
-packages = ["pennyio"]
-package-dir = {"" = "src"}
+[tool.hatch.build]
+sources = ["src"]
 
 [tool.black]
 line-length = 120
@@ -33,4 +32,7 @@ dev = [
 ]
 
 [project.optional-dependencies]
-qt = ["PySide6"]
+selection = [
+    "rasterio>=1.5.1",
+    "shapely>=2.1.2",
+]

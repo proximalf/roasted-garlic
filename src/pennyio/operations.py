@@ -1,26 +1,25 @@
-from typing import Literal, NamedTuple, Tuple, Union
-
+from typing import Literal, NamedTuple, Tuple 
 import numpy as np
 
 from .types import Image
 
 
-def add(image: Image, value: Union[float, int, Image]) -> Image:
+def add(image: Image, value: float | int | Image) -> Image:
     """Add value to image."""
     return image + value
 
 
-def subtract(image: Image, value: Union[float, int, Image]) -> Image:
+def subtract(image: Image, value: float | int | Image) -> Image:
     """Subtract value from image."""
     return image - value
 
 
-def multiply(image: Image, value: Union[float, int, Image]) -> Image:
+def multiply(image: Image, value: float | int | Image) -> Image:
     """Multiply image by value."""
     return image * value
 
 
-def divide(image: Image, value: Union[float, int, Image]) -> Image:
+def divide(image: Image, value: float | int | Image) -> Image:
     """Divide image by value."""
     return image // value
 

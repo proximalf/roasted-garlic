@@ -10,12 +10,14 @@ from .types import BIT16, Image
 
 logger = logging.getLogger()
 
+logger.warning("pennyio qt is going to be depreciated use qtcomponents instead")
 
 def numpy_to_pixmap(array: np.ndarray) -> QPixmap:
     """
     This function is being renamed, to image_to_pixmap.
     """
     logger.warning("This function is being renamed.")
+    logger.warning("pennyio qt is going to be depreciated use qtcomponents instead")
     return image_to_pixmap(array)
 
 
@@ -48,6 +50,7 @@ def image_to_pixmap(image: Image) -> QPixmap:
     Exception if image is not 2D
     TypeError if image has more than 4 channels.
     """
+    logger.warning("pennyio qt is going to be depreciated use qtcomponents instead")
     if not image.flags.c_contiguous:  # Make array contiguous
         image = np.ascontiguousarray(image)
 

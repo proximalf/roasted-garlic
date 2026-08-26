@@ -56,7 +56,7 @@ def load_image(filepath: Path, convert_to_mono: bool = False, raw_bits: int = 16
         Loaded image as an ndarray.
     """
     if not filepath.exists():
-        raise FileExistsError(f"File cannot be found - {filepath}")
+        raise FileNotFoundError(f"File cannot be found - {filepath}")
 
     if filepath.suffix.upper() not in SUPPORTED_IMAGE_TYPES:
         raise TypeError(f"File not supported: {filepath}")
@@ -65,6 +65,9 @@ def load_image(filepath: Path, convert_to_mono: bool = False, raw_bits: int = 16
         image = load_raw_image(filepath, raw_bits)
     else:
         image = cv.imread(str(filepath), cv.IMREAD_ANYCOLOR)
+
+        if image is None:
+            raise Exception(f"File cannot be loaded! {filepath}")
 
         # Convert a colour image as cv reads colours in BGR format which isn't that intuitive.
         if image.shape[-1] == 3:
