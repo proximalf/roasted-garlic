@@ -1,4 +1,5 @@
 from typing import Union
+
 import numpy as np
 
 from .selection import SelectionArea
@@ -36,7 +37,7 @@ def crop_image_from_mask(
     then extracts the region within the bounding box defined by the mask's truth values.
     """
     if image_to_crop.dtype in INTEGER_TYPES and fill_value is np.nan:
-        fill_value = 0 # int can't use np.nan
+        fill_value = 0  # int can't use np.nan
 
     # Doing this consumes and edits the image, so best to copy.
     image_to_crop = image_to_crop.copy()

@@ -49,7 +49,7 @@ def convert_image(image: Image, type: Literal["mono", "colour", "color", "invert
         case "mono":
             if image.shape[-1] != 3:
                 if silent:
-                    return image # Return if silent
+                    return image  # Return if silent
                 raise ValueError(f"Invalid shape of image: {image.shape} != 3")
             return convert_array_to_mono(image)
         case "colour":

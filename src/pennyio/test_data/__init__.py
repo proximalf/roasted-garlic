@@ -4,7 +4,7 @@ from typing import Callable, Iterator, Optional, Tuple
 
 import numpy as np
 
-from ..convert import convert_uint_to_normalised_float, convert_image
+from ..convert import convert_image, convert_uint_to_normalised_float
 from ..io import load_image
 from ..types import Image
 
@@ -127,7 +127,7 @@ class TestImages:
     def float_jb() -> Image:
         """JB float image"""
         return convert_uint_to_normalised_float(TestImages.colour())
-    
+
     @staticmethod
     def mono_jb() -> Image:
         """JB mono image"""

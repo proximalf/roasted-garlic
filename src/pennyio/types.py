@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Literal, Union, Collection
+from typing import Any, Collection, Dict, List, Literal, Union
 
 import cv2 as cv
 from numpy import ndarray

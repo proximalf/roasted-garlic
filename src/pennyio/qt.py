@@ -12,6 +12,7 @@ logger = logging.getLogger()
 
 logger.warning("pennyio qt is going to be depreciated use qtcomponents instead")
 
+
 def numpy_to_pixmap(array: np.ndarray) -> QPixmap:
     """
     This function is being renamed, to image_to_pixmap.

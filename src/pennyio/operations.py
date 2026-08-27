@@ -1,4 +1,5 @@
-from typing import Literal, NamedTuple, Tuple 
+from typing import Literal, NamedTuple, Tuple
+
 import numpy as np
 
 from .types import Image

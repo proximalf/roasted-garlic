@@ -1,11 +1,11 @@
-import numpy as np
-
 from enum import Enum
-from typing import Tuple, NamedTuple, List
+from typing import List, NamedTuple, Tuple
 
+import numpy as np
 from rasterio.features import rasterize
+from shapely.geometry import LineString, Point, Polygon
 from shapely.geometry.base import BaseGeometry
-from shapely.geometry import Point, Polygon, LineString
+
 
 class PixelIndices(NamedTuple):
     """
@@ -19,8 +19,10 @@ class PixelIndices(NamedTuple):
     rows, cols
         Index positions.
     """
+
     rows: np.ndarray
     cols: np.ndarray
+
 
 def shape_to_numpy_mask(shape: BaseGeometry, mask_shape: Tuple[int, int]) -> np.ndarray:
     """
@@ -57,9 +59,10 @@ def shape_to_numpy_mask(shape: BaseGeometry, mask_shape: Tuple[int, int]) -> np.
 
     return mask.astype(np.bool_)
 
+
 def shape_to_numpy_indices(shape: BaseGeometry, mask_shape: Tuple[int, int]) -> PixelIndices:
     """
-    Convert a Shapely shape into pixel indices, retaining order based on distance from 
+    Convert a Shapely shape into pixel indices, retaining order based on distance from
 
     Parameters:
     -----------
@@ -81,7 +84,7 @@ def shape_to_numpy_indices(shape: BaseGeometry, mask_shape: Tuple[int, int]) -> 
     origin and pixel size are set to 1x1 in this implementation.
     """
     mask = shape_to_numpy_mask(shape, mask_shape)
-    
+
     # Convert to points to preserve order, rasterio doesn't do this
     rows, cols = np.where(mask)
     pixel_points = [
@@ -91,10 +94,7 @@ def shape_to_numpy_indices(shape: BaseGeometry, mask_shape: Tuple[int, int]) -> 
     ]
 
     # https://shapely.readthedocs.io/en/stable/manual.html#linear-referencing-methods
-    distances = np.array([
-        shape.project(point) 
-        for point in pixel_points
-    ])
+    distances = np.array([shape.project(point) for point in pixel_points])
     # sort by distance
     order = np.argsort(distances)
 
@@ -156,7 +156,7 @@ class SelectionArea:
         return shape_to_numpy_mask(self.shape, mask_shape)
 
     @staticmethod
-    def line(start: Tuple[int, int], end: Tuple[int, int], pad = 0) -> "SelectionArea":
+    def line(start: Tuple[int, int], end: Tuple[int, int], pad=0) -> "SelectionArea":
         return create_line_selection_area(start, end, pad)
 
     @staticmethod
@@ -166,12 +166,13 @@ class SelectionArea:
     @staticmethod
     def circle(centre: Tuple[int, int], radius: int) -> "SelectionArea":
         return create_circle_selection_area(centre, radius)
-        
+
     @staticmethod
     def polygon(points: List[Tuple[int, int]]) -> "SelectionArea":
         return create_polygon_selection_area(points)
 
-def create_line_selection_area(start: Tuple[int, int], end: Tuple[int, int], pad = 0) -> SelectionArea:
+
+def create_line_selection_area(start: Tuple[int, int], end: Tuple[int, int], pad=0) -> SelectionArea:
     """
     Creates a selection area representing a line segment.
 

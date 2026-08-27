@@ -79,7 +79,12 @@ def plot_image_histogram(axes: Axes, image: Image, plot_mono: bool = True, flip:
 
 
 def update_plot_channel(
-    channel: Line2D, image_channel: Image, bins: int, max_value: int | float, flip: bool = False, interpolate: bool = True
+    channel: Line2D,
+    image_channel: Image,
+    bins: int,
+    max_value: int | float,
+    flip: bool = False,
+    interpolate: bool = True,
 ) -> int | float:
     """
     Conveinience function for updating a PlotChannel line. This function calculates the histogram of an image.
@@ -89,13 +94,12 @@ def update_plot_channel(
     - interpolate: Set the false to raw data, interpolation is only to remove 0 values on arrays over 1000 items
     """
     hist = calculate_histogram(image_channel, bins, max_value)
-    
+
     data = hist.data
     if len(hist.data) > 1000:
         # If length of data is too long, interpolate so 0 values don't cloud the plot.
         condition = np.where(data != 0)
         data = np.interp(hist.bin_edges, hist.bin_edges[condition], data[condition])
-
 
     if flip:
         channel.set_xdata(data)
@@ -141,11 +145,11 @@ def update_histogram_plot_channels(
         else:
             x_max = 1.0
 
-    # If mono only update the only channel 
+    # If mono only update the only channel
     # the image will not need converting.
     if plot_channels.mono:
         y_max: int | float = update_plot_channel(plot_channels.M, image, bins, x_max, flip=flip)
-    
+
     else:
         # Plot colour channels
         y_max = []
@@ -168,7 +172,6 @@ def update_histogram_plot_channels(
         if plot_mono:
             M_max = update_plot_channel(plot_channels.M, convert.convert_array_to_mono(image), bins, x_max, flip=flip)
             y_max.append(M_max)
-
 
     if flip:
         return np.max(y_max), x_max
