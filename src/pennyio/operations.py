@@ -1,6 +1,7 @@
 from typing import Literal, NamedTuple, Tuple
 
 import numpy as np
+import cv2 as cv
 
 from .types import Image
 
@@ -60,3 +61,14 @@ def flip_image(image: Image, direction: Literal["UpDown", "LeftRight"]) -> Image
     """
     axis = 0 if direction == "UpDown" else 1
     return np.flip(image, axis)
+
+
+def threshold(image: Image, lower: int, upper: int = 255, type: int = cv.THRESH_BINARY) -> Image:
+    """
+    Binary threshold.
+
+    Convience wrapper around cv.threshold.
+    cv.threshold(image, lower, upper, type=cv.THRESH_BINARY)
+    """
+    _, thresh = cv.threshold(image, lower, upper, type)
+    return thresh
