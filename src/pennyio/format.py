@@ -67,6 +67,7 @@ class ImageFormat(Enum):
         16bit - 2^16
         float - 1000
         """
+        logger.warning("DEPRECIATING") # This isn't relevent to format, as you can determine bins from bits
 
         match self:
             case ImageFormat.AlphaFloat | ImageFormat.ColourFloat | ImageFormat.MonoFloat:
@@ -79,6 +80,20 @@ class ImageFormat(Enum):
 
         return bins
 
+    @property
+    def bits(self) -> int | None:
+        """
+        Return number of bit rate in image
+        """
+        match self:
+            case ImageFormat.Mono8 | ImageFormat.Colour8 | ImageFormat.Alpha8:
+                return 8
+
+            case ImageFormat.Mono16 | ImageFormat.Colour16 | ImageFormat.Alpha16:
+                return 16
+            
+            case _:
+                return None
 
 def determine_image_format(image: Image) -> ImageFormat:
     """
