@@ -7,22 +7,22 @@ from .types import Image
 
 
 def add(image: Image, value: float | int | Image) -> Image:
-    """Add value to image."""
+    """Typed. Add value to image."""
     return image + value
 
 
 def subtract(image: Image, value: float | int | Image) -> Image:
-    """Subtract value from image."""
+    """Typed. Subtract value from image."""
     return image - value
 
 
 def multiply(image: Image, value: float | int | Image) -> Image:
-    """Multiply image by value."""
+    """Typed. Multiply image by value."""
     return image * value
 
 
 def divide(image: Image, value: float | int | Image) -> Image:
-    """Divide image by value."""
+    """Typed. Divide image by value."""
     return image // value
 
 
@@ -63,7 +63,7 @@ def flip_image(image: Image, direction: Literal["UpDown", "LeftRight"]) -> Image
     return np.flip(image, axis)
 
 
-def threshold(image: Image, lower: int, upper: int = 255, type: int = cv.THRESH_BINARY) -> Image:
+def threshold(image: Image, lower: int, upper: int = 255, type: cv.ThresholdTypes = cv.THRESH_BINARY) -> Image:
     """
     Binary threshold.
 
@@ -72,3 +72,24 @@ def threshold(image: Image, lower: int, upper: int = 255, type: int = cv.THRESH_
     """
     _, thresh = cv.threshold(image, lower, upper, type)
     return thresh
+
+def resize(image: Image, max_size: int, interpolation: cv.InterpolationFlags = cv.INTER_LINEAR) -> Image:
+    """
+    Resize image to set max_size. Scale is rounded, so may return exactly max_size.
+    Set interpolation - cv.INTER_LINEAR, cv.INTER_AREA, cv.INTER_NEAREST, cv.INTER_MAX
+    """
+    h, w = image.shape[:2]
+
+    scale = min(max_size / w, max_size / h)
+
+    if scale >= 1:
+        return image
+
+    new_w = round(w * scale)
+    new_h = round(h * scale)
+
+    return cv.resize(
+        src=image,
+        dsize=(new_w, new_h),
+        interpolation=interpolation,
+    )
