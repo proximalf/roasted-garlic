@@ -168,7 +168,7 @@ def is_image(array: np.ndarray) -> bool:
     except:
         return False
 
-def bits(image: Image) -> Literal[8, 16] | None:
+def image_bits(image: Image) -> Literal[8, 16] | None:
     """
     Convenience function for determining bit rate of image.
     Will return None if bits cannot be determined, such as if image is float.
