@@ -1,6 +1,6 @@
 import logging
 from enum import Enum
-from typing import Callable, List, NamedTuple, Tuple
+from typing import Callable, List, NamedTuple, Tuple, Self, Literal
 
 import numpy as np
 
@@ -81,9 +81,10 @@ class ImageFormat(Enum):
         return bins
 
     @property
-    def bits(self) -> int | None:
+    def bits(self) -> Literal[8, 16] | None:
         """
-        Return number of bit rate in image
+        Convenience method for determining bit rate of image.
+        Will return None if bits cannot be determined, such as if image is float.
         """
         match self:
             case ImageFormat.Mono8 | ImageFormat.Colour8 | ImageFormat.Alpha8:
@@ -94,6 +95,11 @@ class ImageFormat(Enum):
             
             case _:
                 return None
+
+    @staticmethod
+    def format(image: Image) -> "ImageFormat":
+        """Convenience method for determining image format."""
+        return determine_image_format(image)
 
 def determine_image_format(image: Image) -> ImageFormat:
     """
@@ -153,7 +159,7 @@ def determine_image_format(image: Image) -> ImageFormat:
 
 def is_image(array: np.ndarray) -> bool:
     """
-    Check if object is a valid image.
+    Convenience check if array is a valid image.
     """
     try:
         # as long as it passes this function the array must be an image.
@@ -161,3 +167,10 @@ def is_image(array: np.ndarray) -> bool:
         return True
     except:
         return False
+
+def bits(image: Image) -> Literal[8, 16] | None:
+    """
+    Convenience function for determining bit rate of image.
+    Will return None if bits cannot be determined, such as if image is float.
+    """
+    return determine_image_format(image).bits
