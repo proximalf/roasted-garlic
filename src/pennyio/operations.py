@@ -63,7 +63,7 @@ def flip_image(image: Image, direction: Literal["UpDown", "LeftRight"]) -> Image
     return np.flip(image, axis)
 
 
-def threshold(image: Image, lower: int, upper: int = 255, type: cv.ThresholdTypes = cv.THRESH_BINARY) -> Image:
+def threshold(image: Image, lower: int, upper: int = 255, type: int = cv.THRESH_BINARY) -> Image:
     """
     Binary threshold.
 
@@ -73,7 +73,7 @@ def threshold(image: Image, lower: int, upper: int = 255, type: cv.ThresholdType
     _, thresh = cv.threshold(image, lower, upper, type)
     return thresh
 
-def resize(image: Image, max_size: int, interpolation: cv.InterpolationFlags = cv.INTER_LINEAR) -> Image:
+def resize(image: Image, max_size: int, interpolation: int = cv.INTER_LINEAR) -> Image:
     """
     Resize image to set max_size. Scale is rounded, so may return exactly max_size.
     Set interpolation - cv.INTER_LINEAR, cv.INTER_AREA, cv.INTER_NEAREST, cv.INTER_MAX
