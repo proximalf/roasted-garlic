@@ -4,7 +4,7 @@ from typing import Literal, Optional
 import cv2 as cv
 import numpy as np
 
-from .format import ImageFormat, determine_image_format
+from .format import ImageFormat, determine_image_format, image_bits
 from .types import BIT8, BIT16, Image
 
 logger = logging.getLogger()
@@ -39,12 +39,20 @@ def convert_array_to_mono(image: Image) -> np.ndarray:
     return mono.astype(dtype)
 
 
-def convert_image(image: Image, type: Literal["mono", "colour", "color", "invert"], silent: bool = False) -> Image:
+def convert_image(image: Image, type: Literal["mono", "colour", "color", "invert"], silent: bool = False, to_8bit: bool = False) -> Image:
     """
     Converts image into either `"mono"` or `"colour"`
     Will return `None` if Image cannot be converted.
     Set silent to True to ignore and return invalid image.
+    to_8bit will convert any valid Image[int] into 8-bit.
     """
+    if to_8bit:
+        bits = image_bits(image)
+        if bits is None:
+            image = image * 255
+        elif bits != 8:
+            image = (image // 255).astype(np.uint8)
+    
     match type:
         case "mono":
             if image.shape[-1] != 3:
@@ -52,19 +60,23 @@ def convert_image(image: Image, type: Literal["mono", "colour", "color", "invert
                     return image  # Return if silent
                 raise ValueError(f"Invalid shape of image: {image.shape} != 3")
             return convert_array_to_mono(image)
+        
         case "colour":
             if len(image.shape) != 2:
                 raise ValueError(f"Invalid shape of image: {image.shape} != 2")
             return cv.cvtColor(image, cv.COLOR_GRAY2RGB)
+        
         case "color":  # Americans -.-
             if len(image.shape) != 2:
                 raise ValueError(f"Invalid shape of image: {image.shape} != 2")
             return cv.cvtColor(image, cv.COLOR_GRAY2RGB)
+
         case "invert":
             # Can only invert a mono image
             if len(image.shape) != 2:
                 raise ValueError(f"Invalid shape of image: {image.shape} != 2")
             return cv.bitwise_not(image)
+        
         case _:
             raise KeyError(f"Invalid type - {type}")
 
