@@ -44,16 +44,20 @@ class ImageFormat(Enum):
     def __repr__(self) -> str:
         return f"ImageFormat.{self.name}"
 
+    @property
     def is_mono(self) -> bool:
         return self in (ImageFormat.Mono8, ImageFormat.Mono16, ImageFormat.MonoFloat)
 
+    @property
     def is_float(self) -> bool:
         return self in (ImageFormat.MonoFloat, ImageFormat.ColourFloat, ImageFormat.AlphaFloat)
 
+    @property
     def is_colour(self) -> bool:
         """If image is alpha it must be colour."""
         return self in (ImageFormat.Colour8, ImageFormat.Colour16, ImageFormat.ColourFloat) or self.is_alpha()
 
+    @property
     def is_alpha(self) -> bool:
         return self in (ImageFormat.Alpha8, ImageFormat.Alpha16, ImageFormat.AlphaFloat)
 
