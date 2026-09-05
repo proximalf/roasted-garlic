@@ -45,7 +45,7 @@ def crop(image: Image, rect: Tuple[int, int, int, int], pad: int = 0) -> Image:
         Cropped to size, with any padding applied.
     """
     x, y, w, h = rect
-    original_h, original_w = image.shape
+    original_h, original_w = image.shape[:2]
 
     if x + w + pad > original_w or y + h + pad > original_h:
         raise ValueError("Crop error - Pad too big")
