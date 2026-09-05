@@ -38,20 +38,29 @@ def convert_array_to_mono(image: Image) -> np.ndarray:
     mono = RED_FACTOR * R + GREEN_FACTOR * G + BLUE_FACTOR * B
     return mono.astype(dtype)
 
+def convert_to_8_bit(image: Image) -> Image:
+    """
+    Will always return an image, even if there wasn't a conversion.
+    """
+    
+    bits = image_bits(image)
+    
+    if bits is None:
+        image = (image * 255).astype(np.uint8)
+    elif bits != 8:
+        image = (image // 255).astype(np.uint8)
+    
+    return image
 
 def convert_image(image: Image, type: Literal["mono", "colour", "color", "invert"], silent: bool = False, to_8bit: bool = False) -> Image:
     """
     Converts image into either `"mono"` or `"colour"`
     Will return `None` if Image cannot be converted.
     Set silent to True to ignore and return invalid image.
-    to_8bit will convert any valid Image[int] into 8-bit.
+    `to_8bit` will convert any valid Image[int] into 8-bit.
     """
     if to_8bit:
-        bits = image_bits(image)
-        if bits is None:
-            image = image * 255
-        elif bits != 8:
-            image = (image // 255).astype(np.uint8)
+        image = convert_to_8_bit(image)
     
     match type:
         case "mono":
