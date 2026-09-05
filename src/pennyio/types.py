@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Any, Collection, Dict, List, Literal, Union
 from pathlib import Path
 import cv2 as cv
@@ -13,15 +14,37 @@ Type alias for images, cv and numpy.
 
 SUPPORTED_IMAGE_TYPES = (".BMP", ".CR2", ".JPG", ".PNG", ".TIF", ".TIFF")
 
+class ImageFileFormat(Enum):
+    BMP = "BMP"
+    CR2 = "CR2"
+    JPG = "JPG"
+    PNG = "PNG"
+    TIF = "TIF"
+    TIFF = "TIFF"
+
 class SupportedImageType:
     types = ("BMP", "CR2", "JPG", "PNG", "TIF", "TIFF")
+    """
+    A collection of supported types within package.
+    """ 
+    default = "PNG"
+    """
+    Default filetype for writing images.
+    """
 
-    def check_equality(self, other: str | Path) -> bool:
+    def check_equality(self, other: str | Path | ImageFileFormat) -> bool:
+        """
+        Check if a given filetype in the form of a suffix 
+        """
         if isinstance(other, str):
             suffix = other.upper().lstrip(".")
+        
         elif isinstance(other, Path):
             suffix = other.suffix.upper().lstrip(".")
-            
+
+        elif isinstance(other, ImageFileFormat):
+            suffix = other.value
+        
         return suffix in self.types
 
     def __eq__(self, other) -> bool:

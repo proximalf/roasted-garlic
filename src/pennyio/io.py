@@ -1,3 +1,4 @@
+from pennyio.format import determine_image_format
 from pathlib import Path
 from typing import Optional, Union
 
@@ -6,7 +7,7 @@ import numpy as np
 import rawpy
 
 from .convert import convert_array_to_mono
-from .types import RAW_FILES, SAVE_IMAGE_TYPES, SUPPORTED_IMAGE_TYPES, Image
+from .types import RAW_FILES, SAVE_IMAGE_TYPES, SUPPORTED_IMAGE_TYPES, Image, SUPPORTED_IMAGE_TYPE
 
 
 def load_raw_image(image_file: Path, output_bits: int = 16) -> Image:
@@ -84,7 +85,7 @@ def save_image(
     image: Image,
     cmap: Optional[int] = None,
     filetype: Union[str, SAVE_IMAGE_TYPES] = "PNG",
-    use_default: bool = True,
+    default_on_error: bool = True,
 ) -> None:
     """
     Save image helper function. Filename is appended with filetype.
@@ -104,7 +105,7 @@ def save_image(
         Colormap to apply to image, default is cv.COLORMAP_VIRIDIS.
     filetype: Union[str, Literal["BMP", "PNG", "TIFF", "JPG"]]
         Filetype to save image as, this is TIFF as default.z
-    use_default: bool
+    default_on_error: bool
         Setting this to True forces the default filetype PNG to be used.
         No error will be raised.
 
@@ -119,22 +120,28 @@ def save_image(
     if filename.suffix != "":
         filetype = filename.suffix
 
-    filetype = filetype.strip(".")
+    filetype = filetype.lower().strip(".")
 
-    if use_default:
-        filetype = "PNG"
+    valid_filetype = filetype == SUPPORTED_IMAGE_TYPE
 
-    if filetype.upper() not in ["BMP", "PNG", "TIFF", "JPG"]:
-        raise TypeError(f"Error during saving, invalid filetype! {filetype =}")
+    if not valid_filetype:
+
+        if not default_on_error:
+            raise TypeError(f"Error during saving, invalid filetype! {filetype =}")
+        
+        filetype = SUPPORTED_IMAGE_TYPE.default
+
 
     if not filename.parent.exists():
         filename.parent.mkdir(parents=True)
 
+    format = determine_image_format(image)
+
     # Convert image to BGR as cv will write in this format.
-    if image.shape[-1] == 3:
+    if format.is_colour:
         image = cv.cvtColor(image, cv.COLOR_RGB2BGR)
 
     if cmap is not None:
         image = cv.applyColorMap(image.astype(np.uint8), cmap)
 
-    cv.imwrite(str(filename.with_suffix("." + filetype.lower())), image)
+    cv.imwrite(str(filename.with_suffix("." + filetype)), image)
