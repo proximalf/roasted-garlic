@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Generator
+from typing import Iterator
 
 from shapely import from_geojson, to_geojson
 
@@ -24,9 +24,9 @@ def save_selection(path: Path, selection: SelectionArea, mode="w") -> None:
         file.write(f"{selection.id}, {selection.type}, {to_geojson(selection.shape)}\n")
 
 
-def load_selections(path: Path) -> Generator[SelectionArea, ..., ...]:
+def load_selections(path: Path) -> Iterator[SelectionArea]:
     """
-    Load a selection from file.
+    Load a selections from file.
 
     Returns
     -------
