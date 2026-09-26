@@ -38,12 +38,13 @@ def convert_array_to_mono(image: Image) -> np.ndarray:
     mono = RED_FACTOR * R + GREEN_FACTOR * G + BLUE_FACTOR * B
     return mono.astype(dtype)
 
-def convert_to_8_bit(image: Image) -> Image:
+def convert_to_8_bit(image: Image, bits: Literal[8, 16] | None = None) -> Image:
     """
     Will always return an image, even if there wasn't a conversion.
     """
     
-    bits = image_bits(image)
+    # Save recomputing
+    bits = image_bits(image) if bits is None else bits
     
     if bits is None:
         image = (image * 255).astype(np.uint8)
@@ -59,36 +60,33 @@ def convert_image(image: Image, type: Literal["mono", "colour", "color", "invert
     Set silent to True to ignore and return invalid image.
     `to_8bit` will convert any valid Image[int] into 8-bit.
     """
-    if to_8bit:
-        image = convert_to_8_bit(image)
     
+    format = ImageFormat.format(image)
+    
+    if to_8bit:
+        image = convert_to_8_bit(image, format.bits)
+
     match type:
         case "mono":
-            if image.shape[-1] != 3:
-                if silent:
-                    return image  # Return if silent
-                raise ValueError(f"Invalid shape of image: {image.shape} != 3")
-            return convert_array_to_mono(image)
+            if format.is_colour:
+                return convert_array_to_mono(image)
         
         case "colour":
-            if len(image.shape) != 2:
-                raise ValueError(f"Invalid shape of image: {image.shape} != 2")
-            return cv.cvtColor(image, cv.COLOR_GRAY2RGB)
+            if format.is_mono:
+                return cv.cvtColor(image, cv.COLOR_GRAY2RGB)
         
-        case "color":  # Americans -.-
-            if len(image.shape) != 2:
-                raise ValueError(f"Invalid shape of image: {image.shape} != 2")
-            return cv.cvtColor(image, cv.COLOR_GRAY2RGB)
-
         case "invert":
-            # Can only invert a mono image
-            if len(image.shape) != 2:
-                raise ValueError(f"Invalid shape of image: {image.shape} != 2")
-            return cv.bitwise_not(image)
+            if format.is_mono:
+                return cv.bitwise_not(image)
         
         case _:
             raise KeyError(f"Invalid type - {type}")
 
+    # Only raise an error if silent flag is False.
+    if not silent:
+        raise ValueError(f"Failed to convert image ({format}) to format: {type}")
+
+    return image
 
 def convert_uint_to_normalised_float(image: Image) -> Image:
     """
