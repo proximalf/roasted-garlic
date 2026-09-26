@@ -1,6 +1,6 @@
 import logging
 from enum import Enum
-from typing import Callable, List, NamedTuple, Tuple, Self, Literal
+from typing import Callable, List, Literal, NamedTuple, Self, Tuple
 
 import numpy as np
 
@@ -71,7 +71,7 @@ class ImageFormat(Enum):
         16bit - 2^16
         float - 1000
         """
-        logger.warning("DEPRECIATING") # This isn't relevent to format, as you can determine bins from bits
+        logger.warning("DEPRECIATING")  # This isn't relevent to format, as you can determine bins from bits
 
         match self:
             case ImageFormat.AlphaFloat | ImageFormat.ColourFloat | ImageFormat.MonoFloat:
@@ -96,7 +96,7 @@ class ImageFormat(Enum):
 
             case ImageFormat.Mono16 | ImageFormat.Colour16 | ImageFormat.Alpha16:
                 return 16
-            
+
             case _:
                 return None
 
@@ -104,6 +104,7 @@ class ImageFormat(Enum):
     def format(image: Image) -> "ImageFormat":
         """Convenience method for determining image format."""
         return determine_image_format(image)
+
 
 def determine_image_format(image: Image) -> ImageFormat:
     """
@@ -171,6 +172,7 @@ def is_image(array: np.ndarray) -> bool:
         return True
     except:
         return False
+
 
 def image_bits(image: Image) -> Literal[8, 16] | None:
     """

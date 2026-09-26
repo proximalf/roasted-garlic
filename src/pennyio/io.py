@@ -4,9 +4,15 @@ import cv2 as cv
 import numpy as np
 import rawpy
 
-from .format import determine_image_format
 from .convert import convert_array_to_mono
-from .types import RAW_FILES, SAVE_IMAGE_TYPES, SUPPORTED_IMAGE_TYPES, Image, SUPPORTED_IMAGE_TYPE
+from .format import determine_image_format
+from .types import (
+    RAW_FILES,
+    SAVE_IMAGE_TYPES,
+    SUPPORTED_IMAGE_TYPE,
+    SUPPORTED_IMAGE_TYPES,
+    Image,
+)
 
 
 def load_raw_image(image_file: Path, output_bits: int = 16) -> Image:
@@ -127,9 +133,8 @@ def save_image(
 
         if not default_on_error:
             raise TypeError(f"Error during saving, invalid filetype! {filetype =}")
-        
-        filetype = SUPPORTED_IMAGE_TYPE.default
 
+        filetype = SUPPORTED_IMAGE_TYPE.default
 
     if not path.parent.exists():
         path.parent.mkdir(parents=True)
@@ -140,7 +145,7 @@ def save_image(
     if format.is_colour:
         image = cv.cvtColor(image, cv.COLOR_RGB2BGR)
 
-    if cmap is not None: # TODO: remove to own func
+    if cmap is not None:  # TODO: remove to own func
         image = cv.applyColorMap(image.astype(np.uint8), cmap)
 
     cv.imwrite(str(path.with_suffix("." + filetype)), image)

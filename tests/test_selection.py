@@ -30,6 +30,7 @@ def plot_line_profile(lines: Collection[SelectionArea]) -> None:
     fig.legend()
     fig.savefig(output / "lines-plot.png")
 
+
 def test_lines() -> None:
     line1 = SelectionArea.line((10, 10), (100, 100))
     line2 = SelectionArea.line((10, 100), (100, 10))
@@ -75,6 +76,7 @@ def test_lines() -> None:
     # these should look jumbled
     save_image(output / "test-line-numpy-mask", image)
 
+
 def test_polygon():
     points = [(10, 10), (25, 120), (150, 100), (50, 50), (100, 10), (10, 10)]
 
@@ -85,6 +87,7 @@ def test_polygon():
     image[p] = 20
 
     save_image(output / "test-poly", image)
+
 
 def test_circle():
     circle = SelectionArea.circle(
@@ -106,6 +109,7 @@ def test_circle():
     image[p] = 20
 
     save_image(output / "test-circle", image)
+
 
 def test_rectangle():
     rect = SelectionArea.rectangle((100, 100), (100, 100))
@@ -148,12 +152,14 @@ def test_io() -> None:
 
     save_image(output / "test-io", image)
 
+
 def test_selections() -> None:
     test_lines()
     test_rectangle()
     test_circle()
     test_polygon()
     test_io()
+
 
 if __name__ == "__main__":
     test_selections()

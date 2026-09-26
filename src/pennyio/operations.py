@@ -1,7 +1,7 @@
 from typing import Literal, NamedTuple, Tuple
 
-import numpy as np
 import cv2 as cv
+import numpy as np
 
 from .types import Image
 
@@ -72,6 +72,7 @@ def threshold(image: Image, lower: int, upper: int = 255, type: int = cv.THRESH_
     """
     _, thresh = cv.threshold(image, lower, upper, type)
     return thresh
+
 
 def resize(image: Image, max_size: int, interpolation: int = cv.INTER_LINEAR) -> Image:
     """

@@ -29,13 +29,13 @@ def test_histogram(filename: str, image: Image) -> None:
 
 
 def main():
-    test_histogram("colour", TestImages.colour())
-    test_histogram("colour-float", TestImages.float_jb())
-    test_histogram("colour-mono", convert_array_to_mono(TestImages.colour()))
+    test_histogram("hist-colour", TestImages.colour())
+    test_histogram("hist-colour-float", TestImages.float_jb())
+    test_histogram("hist-colour-mono", convert_array_to_mono(TestImages.colour()))
 
-    test_histogram("raw", TestImages.raw_cr2())
+    test_histogram("hist-raw", TestImages.raw_cr2())
 
-    test_histogram("raw-mono", convert_array_to_mono(TestImages.raw_cr2()))
+    test_histogram("hist-raw-mono", convert_array_to_mono(TestImages.raw_cr2()))
 
 
 if __name__ == "__main__":

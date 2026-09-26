@@ -1,6 +1,7 @@
 from enum import Enum
-from typing import Any, Collection, Dict, List, Literal, Union
 from pathlib import Path
+from typing import Any, Collection, Dict, List, Literal, Union
+
 import cv2 as cv
 from numpy import ndarray
 
@@ -14,6 +15,7 @@ Type alias for images, cv and numpy.
 
 SUPPORTED_IMAGE_TYPES = (".BMP", ".CR2", ".JPG", ".PNG", ".TIF", ".TIFF")
 
+
 class ImageFileFormat(Enum):
     BMP = "BMP"
     CR2 = "CR2"
@@ -22,11 +24,12 @@ class ImageFileFormat(Enum):
     TIF = "TIF"
     TIFF = "TIFF"
 
+
 class SupportedImageType:
     types = ("BMP", "CR2", "JPG", "PNG", "TIF", "TIFF")
     """
     A collection of supported types within package.
-    """ 
+    """
     default = "PNG"
     """
     Default filetype for writing images.
@@ -34,17 +37,17 @@ class SupportedImageType:
 
     def check_equality(self, other: str | Path | ImageFileFormat) -> bool:
         """
-        Check if a given filetype in the form of a suffix 
+        Check if a given filetype in the form of a suffix
         """
         if isinstance(other, str):
             suffix = other.upper().lstrip(".")
-        
+
         elif isinstance(other, Path):
             suffix = other.suffix.upper().lstrip(".")
 
         elif isinstance(other, ImageFileFormat):
             suffix = other.value
-        
+
         return suffix in self.types
 
     def __eq__(self, other) -> bool:
@@ -52,6 +55,7 @@ class SupportedImageType:
 
     def ___contains__(self, other: str | Path) -> bool:
         return self.check_equality(other)
+
 
 SUPPORTED_IMAGE_TYPE = SupportedImageType()
 """

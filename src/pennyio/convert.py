@@ -38,31 +38,35 @@ def convert_array_to_mono(image: Image) -> np.ndarray:
     mono = RED_FACTOR * R + GREEN_FACTOR * G + BLUE_FACTOR * B
     return mono.astype(dtype)
 
+
 def convert_to_8_bit(image: Image, bits: Literal[8, 16] | None = None) -> Image:
     """
     Will always return an image, even if there wasn't a conversion.
     """
-    
+
     # Save recomputing
     bits = image_bits(image) if bits is None else bits
-    
+
     if bits is None:
         image = (image * 255).astype(np.uint8)
     elif bits != 8:
         image = (image // 255).astype(np.uint8)
-    
+
     return image
 
-def convert_image(image: Image, type: Literal["mono", "colour", "color", "invert"], silent: bool = False, to_8bit: bool = False) -> Image:
+
+def convert_image(
+    image: Image, type: Literal["mono", "colour", "color", "invert"], silent: bool = False, to_8bit: bool = False
+) -> Image:
     """
     Converts image into either `"mono"` or `"colour"`
     Will return `None` if Image cannot be converted.
     Set silent to True to ignore and return invalid image.
     `to_8bit` will convert any valid Image[int] into 8-bit.
     """
-    
+
     format = ImageFormat.format(image)
-    
+
     if to_8bit:
         image = convert_to_8_bit(image, format.bits)
 
@@ -70,15 +74,15 @@ def convert_image(image: Image, type: Literal["mono", "colour", "color", "invert
         case "mono":
             if format.is_colour:
                 return convert_array_to_mono(image)
-        
+
         case "colour":
             if format.is_mono:
                 return cv.cvtColor(image, cv.COLOR_GRAY2RGB)
-        
+
         case "invert":
             if format.is_mono:
                 return cv.bitwise_not(image)
-        
+
         case _:
             raise KeyError(f"Invalid type - {type}")
 
@@ -87,6 +91,7 @@ def convert_image(image: Image, type: Literal["mono", "colour", "color", "invert
         raise ValueError(f"Failed to convert image ({format}) to format: {type}")
 
     return image
+
 
 def convert_uint_to_normalised_float(image: Image) -> Image:
     """

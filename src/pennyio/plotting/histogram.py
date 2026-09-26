@@ -60,7 +60,7 @@ def plot_image_histogram(axes: Axes, image: Image, plot_mono: bool = True, flip:
         The mpl line objects are stored in this class.
     """
     image_format = determine_image_format(image)
-    plot_channels = PlotChannels(mono=image_format.is_mono())
+    plot_channels = PlotChannels(mono=image_format.is_mono)
 
     axes.add_line(plot_channels.M)
     if not plot_channels.mono:
@@ -135,9 +135,11 @@ def update_histogram_plot_channels(
     if image_format is None:
         image_format = determine_image_format(image)
 
-    bins = image_format.get_bins()
+    bits = image_format.bits
+    # it is not a good idea to bin something to 65535 discrete bins.
+    bins = 2**8 if bits is not None else 100
 
-    if not image_format.is_float():
+    if bits != None:
         x_max = bins
     else:
         if (x_max := image.max()) > 1:
