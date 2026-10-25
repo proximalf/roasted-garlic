@@ -1,16 +1,22 @@
+
+import json
 from pathlib import Path
-from typing import Iterator
+from typing import Iterator, Literal, TypedDict, Sequence
 
-from shapely import from_geojson, to_geojson
-
+from .point import Point
 from .selection import SelectionArea, ShapeType
 
-_SELECTION_EXTENSION = ".aoi"
+_SELECTION_EXTENSION = ".json"
 
+class SelectionsJSON(TypedDict):
+    id: str
+    type: str
+    coords: Sequence[Point]
+    pad: float
 
-def save_selection(path: Path, selection: SelectionArea, mode="w") -> None:
+def write_selections(path: Path, selections: list[SelectionArea], mode: Literal["a", "w"] = "w") -> None:
     """
-    Write a selection to file. Sets the suffix to `.aoi`.
+    Write a selection to file. Sets the suffix to `.json`.
 
     Parameters
     ----------
@@ -21,47 +27,49 @@ def save_selection(path: Path, selection: SelectionArea, mode="w") -> None:
     """
     path = path.with_suffix(_SELECTION_EXTENSION)
     with path.open(mode) as file:
-        file.write(f"{selection.id}, {selection.type}, {to_geojson(selection.shape)}\n")
+        l=len(selections)
+        
+        file.write("[") # for list of JSON
+        for i, selection in enumerate(selections, 1):
+            
+            data: SelectionsJSON = {
+                "id" : selection.id,
+                "type": str(selection.type),
+                "coords": selection.coords,
+                "pad" : selection.pad
+            }
+
+            file.write(json.dumps(data))
+            if i != l:
+                file.write(",\n")
+
+        file.write("]") # close list
 
 
-def load_selections(path: Path) -> Iterator[SelectionArea]:
+def load_selections(path: Path) -> list[SelectionArea]:
     """
-    Load a selections from file.
+    Write a selection to file. Sets the suffix to `.json`.
 
+    Parameters
+    ----------
+    path: Path
+        Path to read selections from.
+    
     Returns
     -------
-    SelectionArea
+    list[SelectionAreas]
     """
     path = path.with_suffix(_SELECTION_EXTENSION)
     text = path.read_text()
-
-    for line in text.split("\n"):
-        try:
-            id, type, shape = line.split(", ")
-            shape = from_geojson(shape)
-            type = ShapeType(type.split("::")[-1])
-        except:
-            raise
-
-        yield SelectionArea(shape, type, id)
-
-
-def load_selection(path: Path) -> SelectionArea:
-    """
-    Load a selection from file.
-
-    Returns
-    -------
-    SelectionArea
-    """
-    path = path.with_suffix(_SELECTION_EXTENSION)
-    text = path.read_text()
-
+    
     try:
-        id, type, shape = text.split(", ")
-        shape = from_geojson(shape)
-        type = ShapeType(type.split("::")[-1])
-    except:
-        raise
+        data: list[SelectionsJSON] = json.loads(text)
 
-    return SelectionArea(shape, type, id)
+        return [SelectionArea(
+                [Point(*p) for p in row["coords"]],
+                ShapeType(row["type"].split("::")[-1]),
+                row["id"],
+                row["pad"]
+            ) for row in data]
+    except:
+        raise Exception(f"Failed to load selections file: {path}")

@@ -1,108 +1,13 @@
 from enum import Enum
-from typing import List, NamedTuple, Tuple
+from typing import NamedTuple, Sequence
 
 import numpy as np
-from rasterio.features import rasterize
-from shapely.geometry import LineString, Point, Polygon
+
+from shapely.geometry import LineString, Polygon
 from shapely.geometry.base import BaseGeometry
 
-
-class PixelIndices(NamedTuple):
-    """
-    Convience wrapper for rows and cols.
-
-    Example: `array[pixel_indices] = 255`
-    Sets all pixels with matching index as value 255.
-
-    Attributes
-    ----------
-    rows, cols
-        Index positions.
-    """
-
-    rows: np.ndarray
-    cols: np.ndarray
-
-
-def shape_to_numpy_mask(shape: BaseGeometry, mask_shape: Tuple[int, int]) -> np.ndarray:
-    """
-    Convert a Shapely shape into a binary 2D numpy mask. The result is unordered.
-
-    Parameters:
-    -----------
-    shape : Geometry
-        A Shapely geometry object (e.g., Polygon) that defines the area to be filled in the mask.
-
-    mask_shape : Tuple[int, int]
-        A tuple representing the desired output shape of the mask in the format (height, width).
-
-    Returns:
-    --------
-    mask
-        Mask of bool values.
-
-    Notes:
-    ------
-    The function uses rasterio's rasterization to create the mask. Ensure
-    that the coordinates of the input shape are aligned with the mask's grid, as the
-    origin and pixel size are set to 1x1 in this implementation.
-    """
-    # Create a list of shapes and their corresponding values
-    shapes = [(shape, 1)]  # 1 for filled pixels
-
-    # Create an empty mask with the specified image shape
-    mask = rasterize(
-        shapes,
-        out_shape=mask_shape[0:2],  # Ensure its just a 2D mask, not sure I should do this.
-        fill=0,  # Background value
-    )
-
-    return mask.astype(np.bool_)
-
-
-def shape_to_numpy_indices(shape: BaseGeometry, mask_shape: Tuple[int, int]) -> PixelIndices:
-    """
-    Convert a Shapely shape into pixel indices, retaining order based on distance from
-
-    Parameters:
-    -----------
-    shape : Geometry
-        A Shapely geometry object (e.g., Polygon) that defines the area to be filled in the mask.
-
-    mask_shape : Tuple[int, int]
-        A tuple representing the desired output shape of the mask in the format (height, width).
-
-    Returns:
-    --------
-    PixelIndices
-        Index values for the mask, this is required to preserve ordering.
-
-    Notes:
-    ------
-    The function uses rasterio's rasterization to create the mask. Ensure
-    that the coordinates of the input shape are aligned with the mask's grid, as the
-    origin and pixel size are set to 1x1 in this implementation.
-    """
-    mask = shape_to_numpy_mask(shape, mask_shape)
-
-    # Convert to points to preserve order, rasterio doesn't do this
-    rows, cols = np.where(mask)
-    pixel_points = [
-        # pixel coordinates x=column y=row
-        Point(col, row)
-        for row, col in zip(rows, cols)
-    ]
-
-    # https://shapely.readthedocs.io/en/stable/manual.html#linear-referencing-methods
-    distances = np.array([shape.project(point) for point in pixel_points])
-    # sort by distance
-    order = np.argsort(distances)
-
-    # reorder
-    rows = rows[order]
-    cols = cols[order]
-
-    return PixelIndices(rows, cols)
+from .point import Point, POINT_LIKE
+from .mask import shape_to_numpy_indices, shape_to_numpy_mask, PixelIndices
 
 
 class ShapeType(Enum):
@@ -121,66 +26,123 @@ class ShapeType(Enum):
 
 class SelectionArea:
     """
-    Wrapper class, all the geometry is handled by shapely.
     Call method `as_numpy_indices` to return a mask of rows and columns based on the shape.
     Call method `as_numpy_mask` to return a boolean mask based on the shape.
 
+    All the geometry math is handled by shapely, this is just a simple class for creating the shapes.
+
     Attributes
     ----------
-    shape: BaseGeometry
-        Any given shape that inherits BaseGeometry.
+    coords: list[Point]
+        The coords of the shape.
+        Circles, point1 being the center, point 2 being the circumference.
     type: ShapeType
         Typing for the shape, to easily define the shape of Area for rendering.
+    id: str
+        Identity of SelectionArea.
+    pad: float
+        Set a value to pad / buffer the geometry.
     """
 
-    def __init__(self, shape: BaseGeometry, type: ShapeType, id: str = "_") -> None:
-        self.shape = shape
+    DEFAULT_ID = "_"
+
+    def __init__(self, coords: Sequence[Point], type: ShapeType, id: str = DEFAULT_ID, pad: float = 0) -> None:
+        self.coords = coords
         self.type = type
         self.id = id
+        self.pad = pad
 
     def __repr__(self) -> str:
-        return f"SelectionArea - {self.id} <{self.type} c:{self.shape.centroid} bb:{self.shape.boundary.bounds}>"
+        return f"SelectionArea - {self.id} <{self.type} c:{self.coords}>"
 
-    def as_numpy_indices(self, mask_shape: Tuple[int, int]) -> PixelIndices:
+
+    def as_numpy_indices(self, mask_shape: tuple[int, int]) -> PixelIndices:
         """
         Return pixel indices of shape with order preserced.
         Requires the dimensions of the mask, typcially the same size as the array to be masked.
         """
-        return shape_to_numpy_indices(self.shape, mask_shape)
+        return shape_to_numpy_indices(self.convert_to_shape(), mask_shape)
 
-    def as_numpy_mask(self, mask_shape: Tuple[int, int]) -> np.ndarray:
+    def as_numpy_mask(self, mask_shape: tuple[int, int]) -> np.ndarray:
         """
         Return a boolean mask of shape.
         Requires the dimensions of the mask, typcially the same size as the array to be masked.
         """
-        return shape_to_numpy_mask(self.shape, mask_shape)
+        return shape_to_numpy_mask(self.convert_to_shape(), mask_shape)
+
+    def convert_to_shape(self) -> BaseGeometry:
+        """
+        Convert SelectionArea to Shapely Geometry.
+        """
+        match self.type:
+            case ShapeType.Line:
+                start, end = self.coords[:2]
+                return create_line_geometry(start, end)
+            case ShapeType.Circle:
+                centre, circumference = self.coords[:2]
+                hyp = Point(centre.x - circumference.x, centre.y - circumference.y)
+                radius = (hyp.x**2 + hyp.y**2)**0.5
+                return create_circle_geometry(centre, radius)
+
+            case ShapeType.Rectangle:
+                start, end = self.coords
+                return create_rectangle_geometry(start, end)
+
+            case ShapeType.Polygon:
+                return create_polygon_geometry(self.coords)
 
     @staticmethod
-    def line(start: Tuple[int, int], end: Tuple[int, int], pad=0) -> "SelectionArea":
-        return create_line_selection_area(start, end, pad)
+    def line(start: POINT_LIKE, end: POINT_LIKE, id: str = DEFAULT_ID, pad=0) -> "SelectionArea":
+        
+        start = Point(*start)
+        end = Point(*end)
+        return SelectionArea([start, end], ShapeType.Line, id, pad=pad)
 
     @staticmethod
-    def rectangle(top_left: Tuple[int, int], size: Tuple[int, int], centre: bool = True) -> "SelectionArea":
-        return create_rectangle_selection_area(top_left, size, centre)
+    def rectangle(top_left: POINT_LIKE, size: POINT_LIKE, centre: bool = True, id: str = DEFAULT_ID, pad=0) -> "SelectionArea":
+
+        width, height = size
+
+        if centre:
+            x_centre, y_centre = top_left
+            top_left = Point(x_centre - width / 2, y_centre - height / 2)
+            bottom_right = Point(x_centre + width / 2, y_centre + height / 2)
+        else:
+            x_top_left, y_top_left = top_left
+            top_left = Point(x_top_left, y_top_left)
+            bottom_right = Point(width, height)
+            
+        return SelectionArea([top_left, bottom_right], ShapeType.Rectangle, id, pad)
 
     @staticmethod
-    def circle(centre: Tuple[int, int], radius: int) -> "SelectionArea":
-        return create_circle_selection_area(centre, radius)
+    def circle(centre: POINT_LIKE, radius: int, id: str = DEFAULT_ID, pad=0) -> "SelectionArea":
+
+        x, y = centre
+        circumference = Point(x + radius, y)
+        centre = Point(x, y)
+        return SelectionArea([centre, circumference], ShapeType.Circle, id, pad)
 
     @staticmethod
-    def polygon(points: List[Tuple[int, int]]) -> "SelectionArea":
-        return create_polygon_selection_area(points)
+    def polygon(points: Sequence[POINT_LIKE], id: str = "", pad=0) -> "SelectionArea":
+
+        coords = [Point(*p) for p in points]
+        return SelectionArea(coords, ShapeType.Polygon, id, pad)
 
 
-def create_line_selection_area(start: Tuple[int, int], end: Tuple[int, int], pad=0) -> SelectionArea:
+
+
+# Convert to shapely functions
+from shapely.geometry import Point as SPoint # Shapely point
+
+def create_line_geometry(start: POINT_LIKE, end: POINT_LIKE, pad=0) -> BaseGeometry:
     """
     Creates a selection area representing a line segment.
 
     Parameters
     ----------
-    start: Tuple[int, int]
+    start: POINT_LIKE
         A tuple (x, y) representing the starting point of the line.
-    end: Tuple[int, int]
+    end: POINT_LIKE
         A tuple (x, y) representing the ending point of the line.
 
     Returns
@@ -188,24 +150,23 @@ def create_line_selection_area(start: Tuple[int, int], end: Tuple[int, int], pad
     SelectionArea
         A selection area with the shape of a line from start to end.
     """
-    shape = LineString([Point(start), Point(end)])
+    shape = LineString([SPoint(start), SPoint(end)])
     if pad > 0:
         shape = shape.buffer(pad)
-    type = ShapeType.Line
-    return SelectionArea(shape, type)
+    return shape
 
 
-def create_rectangle_selection_area(
-    top_left: Tuple[int, int], size: Tuple[int, int], centre: bool = True
-) -> SelectionArea:
+def create_rectangle_geometry(
+    top_left: POINT_LIKE, size: POINT_LIKE, centre: bool = True
+) -> BaseGeometry:
     """
     Creates a selection area representing a rectangle.
 
     Parameters
     ----------
-    top_left: Tuple[int, int]
+    top_left: POINT_LIKE
         A tuple (x, y) representing the top_left point of the rectangle.
-    size: Tuple[int, int]
+    size: POINT_LIKE
         A tuple (width, height) representing the dimensions of the rectangle.
     centre: bool
         A flag to state if the point is in the centre, default is True to not upset existing behaviour.
@@ -216,29 +177,28 @@ def create_rectangle_selection_area(
     width, height = size
     if centre:
         x_centre, y_centre = top_left
-        top_left = Point(x_centre - width / 2, y_centre - height / 2)
-        top_right = Point(x_centre + width / 2, y_centre - height / 2)
-        bottom_right = Point(x_centre + width / 2, y_centre + height / 2)
-        bottom_left = Point(x_centre - width / 2, y_centre + height / 2)
+        top_left = SPoint(x_centre - width / 2, y_centre - height / 2)
+        top_right = SPoint(x_centre + width / 2, y_centre - height / 2)
+        bottom_right = SPoint(x_centre + width / 2, y_centre + height / 2)
+        bottom_left = SPoint(x_centre - width / 2, y_centre + height / 2)
     else:
         x_top_left, y_top_left = top_left
-        top_left = Point(x_top_left, y_top_left)
-        top_right = Point(width, y_top_left)
-        bottom_right = Point(width, height)
-        bottom_left = Point(x_top_left, height)
+        top_left = SPoint(x_top_left, y_top_left)
+        top_right = SPoint(width, y_top_left)
+        bottom_right = SPoint(width, height)
+        bottom_left = SPoint(x_top_left, height)
 
     shape = Polygon([top_left, top_right, bottom_right, bottom_left])
-    type = ShapeType.Rectangle
-    return SelectionArea(shape, type)
+    return shape
 
 
-def create_circle_selection_area(centre: Tuple[int, int], radius: int) -> SelectionArea:
+def create_circle_geometry(centre: POINT_LIKE, radius: int) -> BaseGeometry:
     """
     Creates a selection area representing a circle.
 
     Parameters
     ----------
-    centre: Tuple[int, int]
+    centre: POINT_LIKE
         A tuple (x, y) representing the center of the circle.
     radius: int
         The radius of the circle.
@@ -248,12 +208,11 @@ def create_circle_selection_area(centre: Tuple[int, int], radius: int) -> Select
     SelectionArea
         A selection area with the shape of a circle centered at `centre` with the given `radius`.
     """
-    shape = Point(centre).buffer(radius)
-    type = ShapeType.Circle
-    return SelectionArea(shape, type)
+    shape = SPoint(centre).buffer(radius)
+    return shape
 
 
-def create_polygon_selection_area(points: List[Tuple[int, int]]) -> SelectionArea:
+def create_polygon_geometry(points: Sequence[POINT_LIKE]) -> BaseGeometry:
     """
     Creates a selection area representing a polygon.
 
@@ -267,7 +226,7 @@ def create_polygon_selection_area(points: List[Tuple[int, int]]) -> SelectionAre
 
     Parameters
     ----------
-    points: List[Tuple[int, int]]
+    points: List[POINT_LIKE]
         A list of tuples, where each tuple (x, y) represents a vertex of the polygon.
 
     Returns
@@ -275,6 +234,5 @@ def create_polygon_selection_area(points: List[Tuple[int, int]]) -> SelectionAre
     SelectionArea
         A selection area with the shape of a polygon defined by the given `points`.
     """
-    shape = Polygon([Point(xy) for xy in points])
-    type = ShapeType.Polygon
-    return SelectionArea(shape, type)
+    shape = Polygon([SPoint(xy) for xy in points])
+    return shape

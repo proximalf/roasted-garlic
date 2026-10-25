@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 from pennyio.convert import convert_image
 from pennyio.io import save_image
 from pennyio.selection import SelectionArea
-from pennyio.selection.io import load_selection, save_selection
+from pennyio.selection.io import write_selections, load_selections
 from pennyio.test_data import TestImages
 from pennyio.types import Image
 
@@ -53,7 +53,7 @@ def test_lines() -> None:
         image[mask] = image[mask]
         marked_image[mask] = 0
 
-    padded_line = SelectionArea.line((10, 10), (10, 100), 10)
+    padded_line = SelectionArea.line((10, 10), (10, 100), pad=10)
     mask = padded_line.as_numpy_mask(image.shape)
     image[mask] = image[mask]
     marked_image[mask] = 255
@@ -100,9 +100,9 @@ def test_circle():
     image[mask] = image[mask] * 10
     save_image(output / "circle-mask.png", image)
 
-    center = (90, 90)
+    centre = (90, 90)
     radius = 100
-    selection = SelectionArea.circle(centre=center, radius=radius)
+    selection = SelectionArea.circle(centre=centre, radius=radius)
 
     image = TestImages.mono_jb()
     p = selection.as_numpy_mask(image.shape)
@@ -119,17 +119,17 @@ def test_rectangle():
     image[mask] = image[mask] * 10
     save_image(output / "rect-mask.png", image)
 
-    center = (90, 90)
+    centre = (90, 90)
     size = (100, 100)
-    selection = SelectionArea.rectangle(top_left=center, size=size)
+    selection = SelectionArea.rectangle(top_left=centre, size=size)
 
     image = TestImages.mono_jb()
     p = selection.as_numpy_mask(image.shape)
     image[p] = 20
 
-    center = (200, 200)
+    centre = (200, 200)
     size = (50, 50)
-    selection = SelectionArea.rectangle(top_left=center, size=size, centre=True)
+    selection = SelectionArea.rectangle(top_left=centre, size=size, centre=True)
     p = selection.as_numpy_mask(image.shape)
     image[p] = 200
 
@@ -137,18 +137,22 @@ def test_rectangle():
 
 
 def test_io() -> None:
+    filename = output / "test-selection-io"
+    
     start = (10, 300)
     end = (300, 10)
-    selection = SelectionArea.line(start, end)
+    
+    selection1 = SelectionArea.line(start, end, id="line")
+    selection2 = SelectionArea.circle((150, 150), 20, id = "cirle")
 
-    filename = output / "test-selection-io"
-
-    save_selection(filename, selection)
-    selection = load_selection(filename)
+    write_selections(filename, [selection1, selection2])
+    selections = load_selections(filename)
 
     image = TestImages.mono_jb()
-    p = selection.as_numpy_mask(image.shape)
-    image[p] = 200
+    
+    for selection in selections:
+        p = selection.as_numpy_mask(image.shape)
+        image[p] = 200
 
     save_image(output / "test-io", image)
 

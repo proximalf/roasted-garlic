@@ -11,11 +11,20 @@ Add to dependencies:
 "pennyio @ git+https://github.com/proximalf/roasted-garlic",
 ```
 
-## Functions
+## Content
 
-### `determine_image_format`
-Function returns an ImageFormat Enum, which should help processing images of different dtypes, such as when plotting a histogram.
+### Format
+`determine_image_format` - Function returns an ImageFormat Enum, which should help processing images of different dtypes, such as when plotting a histogram.
 
-### `image_to_pixmap`
-Requires the package to be installed as `pip install pennyio[qt]`
-This function returns a `QImage` from a provided numpy image array, if the displayed image is broken check the values of the array provided and the documentation of this function.
+### Selection
+
+selections are saved to file as a list of json objects.
+```json
+[
+    {
+        "name": "line",
+        "type": "Shape::Line",
+        "points": [[153.0,247.0], [518.0,413.0]],
+    },
+]
+```
