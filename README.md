@@ -11,6 +11,14 @@ Add to dependencies:
 "pennyio @ git+https://github.com/proximalf/roasted-garlic",
 ```
 
+### CLI installation
+
+```
+uv tool install ./[cli] # inside the repo
+# or
+uv tool install --with "pennyio[cli] @ git+https://github.com/proximalf/roasted-garlic.git" pennyio
+```
+
 ## Content
 
 ### Format

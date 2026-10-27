@@ -1,6 +1,6 @@
 [project]
 name = "pennyio"
-version = "0.5.1"
+version = "0.5.2"
 description = "Common image functions"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -9,6 +9,10 @@ dependencies = [
     "opencv-python>=4.12.0.88",
     "rawpy>=0.25.1",
 ]
+
+
+[project.scripts]
+penny = "pennyio:execute.main"
 
 [build-system]
 requires = ["hatchling"]
@@ -32,6 +36,14 @@ dev = [
 ]
 
 [project.optional-dependencies]
+all = [
+    "click>=8.3.0",
+    "rasterio>=1.5.1",
+    "shapely>=2.1.2",
+]
+cli = [
+    "click>=8.3.0"
+]
 selection = [
     "rasterio>=1.5.1",
     "shapely>=2.1.2",
