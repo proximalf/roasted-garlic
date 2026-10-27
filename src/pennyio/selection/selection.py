@@ -99,7 +99,10 @@ class SelectionArea:
         return SelectionArea([start, end], ShapeType.Line, id, pad=pad)
 
     @staticmethod
-    def rectangle(top_left: POINT_LIKE, size: POINT_LIKE, centre: bool = True, id: str = DEFAULT_ID, pad=0) -> "SelectionArea":
+    def rectangle(top_left: POINT_LIKE, size: POINT_LIKE, centre: bool = False, id: str = DEFAULT_ID, pad=0) -> "SelectionArea":
+        """
+        Create a rectangle selection, with point defining the top_left, unless centre is True, where the top_left is treated as centre point.
+        """
 
         width, height = size
 
@@ -110,7 +113,7 @@ class SelectionArea:
         else:
             x_top_left, y_top_left = top_left
             top_left = Point(x_top_left, y_top_left)
-            bottom_right = Point(width, height)
+            bottom_right = Point(x_top_left+width, y_top_left+height)
             
         return SelectionArea([top_left, bottom_right], ShapeType.Rectangle, id, pad)
 
@@ -157,7 +160,7 @@ def create_line_geometry(start: POINT_LIKE, end: POINT_LIKE, pad=0) -> BaseGeome
 
 
 def create_rectangle_geometry(
-    top_left: POINT_LIKE, size: POINT_LIKE, centre: bool = True
+    top_left: POINT_LIKE, bottom_right: POINT_LIKE
 ) -> BaseGeometry:
     """
     Creates a selection area representing a rectangle.
@@ -168,25 +171,17 @@ def create_rectangle_geometry(
         A tuple (x, y) representing the top_left point of the rectangle.
     size: POINT_LIKE
         A tuple (width, height) representing the dimensions of the rectangle.
-    centre: bool
-        A flag to state if the point is in the centre, default is True to not upset existing behaviour.
 
     Returns:
         SelectionArea: A selection area with the shape of a rectangle centered at `centre` with the given `size`.
     """
-    width, height = size
-    if centre:
-        x_centre, y_centre = top_left
-        top_left = SPoint(x_centre - width / 2, y_centre - height / 2)
-        top_right = SPoint(x_centre + width / 2, y_centre - height / 2)
-        bottom_right = SPoint(x_centre + width / 2, y_centre + height / 2)
-        bottom_left = SPoint(x_centre - width / 2, y_centre + height / 2)
-    else:
-        x_top_left, y_top_left = top_left
-        top_left = SPoint(x_top_left, y_top_left)
-        top_right = SPoint(width, y_top_left)
-        bottom_right = SPoint(width, height)
-        bottom_left = SPoint(x_top_left, height)
+    x_top_left, y_top_left = top_left
+    x_bottom_right, y_bottom_right = bottom_right
+
+    top_left = SPoint(x_top_left, y_top_left)
+    top_right = SPoint(x_bottom_right, y_top_left)
+    bottom_right = SPoint(x_bottom_right, y_bottom_right)
+    bottom_left = SPoint(x_top_left, y_bottom_right)
 
     shape = Polygon([top_left, top_right, bottom_right, bottom_left])
     return shape
