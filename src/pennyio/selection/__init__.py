@@ -1,8 +1,8 @@
 try:
     from .crop import crop_image_from_selection
-    from .selection import SelectionArea, ShapeType
-    from .point import Point, POINT_LIKE
+    from .io import load_selections, write_selections
     from .mask import PixelIndices
-    from .io import write_selections, load_selections
+    from .point import POINT_LIKE, Point
+    from .selection import SelectionArea, ShapeType
 except ImportError or ModuleNotFoundError:
     raise RuntimeError("requires addtional packages - pip install pennyio[selection]")

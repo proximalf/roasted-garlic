@@ -22,7 +22,7 @@ def main(path: Path, overwrite: bool = False) -> None:
     if not path.exists():
         click.echo("Path does not exist!")
         return
-    
+
     image = load_image(path, True)
 
     output = path.with_stem(path.stem + "-mono") if not overwrite else path

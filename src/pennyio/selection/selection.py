@@ -2,12 +2,11 @@ from enum import Enum
 from typing import NamedTuple, Sequence
 
 import numpy as np
-
 from shapely.geometry import LineString, Polygon
 from shapely.geometry.base import BaseGeometry
 
-from .point import Point, POINT_LIKE
-from .mask import shape_to_numpy_indices, shape_to_numpy_mask, PixelIndices
+from .mask import PixelIndices, shape_to_numpy_indices, shape_to_numpy_mask
+from .point import POINT_LIKE, Point
 
 
 class ShapeType(Enum):
@@ -55,7 +54,6 @@ class SelectionArea:
     def __repr__(self) -> str:
         return f"SelectionArea - {self.id} <{self.type} c:{self.coords}>"
 
-
     def as_numpy_indices(self, mask_shape: tuple[int, int]) -> PixelIndices:
         """
         Return pixel indices of shape with order preserced.
@@ -81,7 +79,7 @@ class SelectionArea:
             case ShapeType.Circle:
                 centre, circumference = self.coords[:2]
                 hyp = Point(centre.x - circumference.x, centre.y - circumference.y)
-                radius = (hyp.x**2 + hyp.y**2)**0.5
+                radius = (hyp.x**2 + hyp.y**2) ** 0.5
                 return create_circle_geometry(centre, radius)
 
             case ShapeType.Rectangle:
@@ -93,13 +91,15 @@ class SelectionArea:
 
     @staticmethod
     def line(start: POINT_LIKE, end: POINT_LIKE, id: str = DEFAULT_ID, pad=0) -> "SelectionArea":
-        
+
         start = Point(*start)
         end = Point(*end)
         return SelectionArea([start, end], ShapeType.Line, id, pad=pad)
 
     @staticmethod
-    def rectangle(top_left: POINT_LIKE, size: POINT_LIKE, centre: bool = False, id: str = DEFAULT_ID, pad=0) -> "SelectionArea":
+    def rectangle(
+        top_left: POINT_LIKE, size: POINT_LIKE, centre: bool = False, id: str = DEFAULT_ID, pad=0
+    ) -> "SelectionArea":
         """
         Create a rectangle selection, with point defining the top_left, unless centre is True, where the top_left is treated as centre point.
         """
@@ -113,8 +113,8 @@ class SelectionArea:
         else:
             x_top_left, y_top_left = top_left
             top_left = Point(x_top_left, y_top_left)
-            bottom_right = Point(x_top_left+width, y_top_left+height)
-            
+            bottom_right = Point(x_top_left + width, y_top_left + height)
+
         return SelectionArea([top_left, bottom_right], ShapeType.Rectangle, id, pad)
 
     @staticmethod
@@ -132,10 +132,9 @@ class SelectionArea:
         return SelectionArea(coords, ShapeType.Polygon, id, pad)
 
 
-
-
 # Convert to shapely functions
-from shapely.geometry import Point as SPoint # Shapely point
+from shapely.geometry import Point as SPoint  # Shapely point
+
 
 def create_line_geometry(start: POINT_LIKE, end: POINT_LIKE, pad=0) -> BaseGeometry:
     """
@@ -159,9 +158,7 @@ def create_line_geometry(start: POINT_LIKE, end: POINT_LIKE, pad=0) -> BaseGeome
     return shape
 
 
-def create_rectangle_geometry(
-    top_left: POINT_LIKE, bottom_right: POINT_LIKE
-) -> BaseGeometry:
+def create_rectangle_geometry(top_left: POINT_LIKE, bottom_right: POINT_LIKE) -> BaseGeometry:
     """
     Creates a selection area representing a rectangle.
 

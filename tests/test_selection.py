@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 from pennyio.convert import convert_image
 from pennyio.io import save_image
 from pennyio.selection import SelectionArea
-from pennyio.selection.io import write_selections, load_selections
+from pennyio.selection.io import load_selections, write_selections
 from pennyio.test_data import TestImages
 from pennyio.types import Image
 
@@ -138,18 +138,18 @@ def test_rectangle():
 
 def test_io() -> None:
     filename = output / "test-selection-io"
-    
+
     start = (10, 300)
     end = (300, 10)
-    
+
     selection1 = SelectionArea.line(start, end, id="line")
-    selection2 = SelectionArea.circle((150, 150), 20, id = "cirle")
+    selection2 = SelectionArea.circle((150, 150), 20, id="cirle")
 
     write_selections(filename, [selection1, selection2])
     selections = load_selections(filename)
 
     image = TestImages.mono_jb()
-    
+
     for selection in selections:
         p = selection.as_numpy_mask(image.shape)
         image[p] = 200

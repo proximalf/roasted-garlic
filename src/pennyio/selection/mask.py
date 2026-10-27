@@ -1,8 +1,8 @@
 from enum import Enum
-from typing import List, NamedTuple, Tuple, Sequence
+from typing import List, NamedTuple, Sequence, Tuple
 
 import numpy as np
-from shapely.geometry import LineString, Polygon, Point
+from shapely.geometry import LineString, Point, Polygon
 from shapely.geometry.base import BaseGeometry
 
 

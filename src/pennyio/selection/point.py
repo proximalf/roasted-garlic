@@ -1,9 +1,11 @@
 from __future__ import annotations
+
 from collections import namedtuple
 
 # Base point that is used to construct the true point class.
 # overriding the __new__ method to check types.
 _BasePoint = namedtuple("Point", ["x", "y"])
+
 
 class Point[T: int | float](_BasePoint):
     """
@@ -77,5 +79,6 @@ class Point[T: int | float](_BasePoint):
         if isinstance(other, Point):
             return Point(self.x // other.x, self.y // other.y)
         return Point(self.x // other, self.y // other)
+
 
 POINT_LIKE = Point | tuple[int | float, int | float]
