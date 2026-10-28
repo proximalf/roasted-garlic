@@ -49,7 +49,7 @@ def shape_to_numpy_mask(shape: BaseGeometry, mask_shape: Tuple[int, int]) -> np.
     try:
         from rasterio.features import rasterize
     except:
-        ImportError("Missing rasterio package.")
+        raise ImportError("Missing rasterio package.")
 
     # Create a list of shapes and their corresponding values
     shapes = [(shape, 1)]  # 1 for filled pixels
