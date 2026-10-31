@@ -11,7 +11,7 @@ from ..types import Image
 logger = logging.getLogger()
 
 DEBUG_IMAGE = Path(__file__).parent / "image.png"
-# RAW_IMAGE = Path(__file__).parent / "raw-image.CR2"
+RAW_IMAGE = Path(__file__).parent / "cat.CR2"
 
 BIT_8 = 2**8 - 1
 BIT_16 = 2**16 - 1
