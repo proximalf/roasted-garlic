@@ -413,7 +413,7 @@ wheels = [
 
 [[package]]
 name = "pennyio"
-version = "0.5.2"
+version = "0.5.5"
 source = { editable = "." }
 dependencies = [
     { name = "matplotlib" },

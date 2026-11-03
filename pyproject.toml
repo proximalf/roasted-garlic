@@ -1,6 +1,6 @@
 [project]
 name = "pennyio"
-version = "0.5.4"
+version = "0.5.5"
 description = "Common image functions"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -12,7 +12,7 @@ dependencies = [
 
 
 [project.scripts]
-penny = "pennyio:execute.main"
+tabby = "pennyio:execute.main"
 
 [build-system]
 requires = ["hatchling"]
