@@ -5,6 +5,7 @@ import numpy as np
 from shapely.geometry import LineString, Point, Polygon
 from shapely.geometry.base import BaseGeometry
 
+from rasterio.features import rasterize
 
 class PixelIndices(NamedTuple):
     """
@@ -46,11 +47,6 @@ def shape_to_numpy_mask(shape: BaseGeometry, mask_shape: Tuple[int, int]) -> np.
     that the coordinates of the input shape are aligned with the mask's grid, as the
     origin and pixel size are set to 1x1 in this implementation.
     """
-    try:
-        from rasterio.features import rasterize
-    except:
-        raise ImportError("Missing rasterio package.")
-
     # Create a list of shapes and their corresponding values
     shapes = [(shape, 1)]  # 1 for filled pixels
 
