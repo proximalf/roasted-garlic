@@ -54,6 +54,21 @@ class SelectionArea:
     def __repr__(self) -> str:
         return f"SelectionArea - {self.id} <{self.type} c:{self.coords}>"
 
+    def bounds(self, coord: int = -1) -> tuple[float, float, float, float] | None:
+        """
+        Convience method to return the bounding rect for use in simple
+        crop operations and plotting. Only works for Rectangle shapes.
+        """
+        if len(self.coords) != 2:
+            return
+        p1 = self.coords[0]
+        p2 = self.coords[coord]
+        
+        match self.type:
+            case ShapeType.Rectangle:
+                return p1.x, p1.y, p2.x-p1.x, p2.y-p1.y
+            
+
     def as_numpy_indices(self, mask_shape: tuple[int, int]) -> PixelIndices:
         """
         Return pixel indices of shape with order preserced.
