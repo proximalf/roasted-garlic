@@ -1,4 +1,6 @@
+from matplotlib.colors import Normalize
 from typing import Literal, NamedTuple, Tuple
+from matplotlib.pyplot import get_cmap
 
 import cv2 as cv
 import numpy as np
@@ -94,3 +96,36 @@ def resize(image: Image, max_size: int, interpolation: int = cv.INTER_LINEAR) ->
         dsize=(new_w, new_h),
         interpolation=interpolation,
     )
+
+
+def bit_shift(image: Image, direction: Literal["left", "right"], shift: int = 1) -> Image:
+    """
+    Shift an images values left or right, by magnitude of shift.
+    Will overflow.
+    """
+    match direction:    
+        case "left":
+            return np.left_shift(image, shift)
+        case "right":
+            return np.right_shift(image, shift)
+
+
+def apply_colourmap(image: Image, colourmap_name: str, limits: tuple[float, float], resample: int | None = None) -> Image:
+    """
+    Apply a matplotlib colourmap to image.
+    Returns image as a 8bit rgb
+    https://matplotlib.org/stable/users/explain/colors/colormaps.html
+    """
+    lower_limit, upper_limit = limits
+    norm = Normalize(vmin=lower_limit, vmax=upper_limit)
+    normalised = norm(image)
+    
+    cmap = get_cmap(colourmap_name)
+    
+    if resample:
+        cmap = cmap.resampled(resample)
+    
+    # convert from float to 8 bit
+    image = (cmap(normalised)[:, :, :3] * 255).astype(np.uint8)
+
+    return image

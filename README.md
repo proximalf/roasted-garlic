@@ -36,3 +36,8 @@ selections are saved to file as a list of json objects.
     },
 ]
 ```
+
+### Operations
+
+- apply_colourmap - set the colourmap of an image, uses MPL colourmaps 
+- bit-shift
