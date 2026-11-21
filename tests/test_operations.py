@@ -1,6 +1,6 @@
 from pathlib import Path
 from pennyio.io import save_image
-from pennyio.operations import add, crop, divide, multiply, subtract, threshold, apply_colourmap, bit_shift
+from pennyio.operations import add, crop, divide, multiply, subtract, threshold, apply_colourmap, bit_shift, rotate
 from pennyio.test_data import TestImages
 from pennyio.types import Image
 
@@ -28,6 +28,11 @@ def colourmap(image: Image) -> None:
     save_image(out / "bit-shift", bs)
 
 
+def test_rotate(image: Image) -> None:
+    bs = rotate(image, 150, reshape=True)
+    save_image(out / "rotate", bs)
+
 if __name__ == "__main__":
     basic(TestImages.mono_jb())
     colourmap(TestImages.mono_jb())
+    test_rotate(TestImages.mono_jb())

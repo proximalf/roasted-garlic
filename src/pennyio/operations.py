@@ -1,6 +1,7 @@
 from matplotlib.colors import Normalize
 from typing import Literal, NamedTuple, Tuple
 from matplotlib.pyplot import get_cmap
+from scipy import ndimage
 
 import cv2 as cv
 import numpy as np
@@ -129,3 +130,12 @@ def apply_colourmap(image: Image, colourmap_name: str, limits: tuple[float, floa
     image = (cmap(normalised)[:, :, :3] * 255).astype(np.uint8)
 
     return image
+
+
+def rotate(image: Image, angle: float, reshape: bool = True) -> Image:
+    """
+    Rotates image by angle in degrees.
+
+    Set reshape to False to crop the image to its original shape.
+    """
+    return ndimage.rotate(image, angle, reshape = reshape)
