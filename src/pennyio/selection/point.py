@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from collections import namedtuple
 
+import numpy as np
+
 # Base point that is used to construct the true point class.
 # overriding the __new__ method to check types.
-_BasePoint = namedtuple("Point", ["x", "y"])
+_BasePoint = namedtuple("_BasePoint", ["x", "y"])
 
 
 class Point[T: int | float](_BasePoint):
@@ -15,24 +17,19 @@ class Point[T: int | float](_BasePoint):
     x: int | float
     y: int | float
 
-    def __new__(cls, x: T, y: T) -> Point:
+    def __new__(cls, x: T | np.number, y: T | np.number) -> Point:
         """Validate itself."""
-        if not isinstance(x, int) and not isinstance(x, float):
+
+        if not np.isscalar(x):
             raise TypeError(f"Invalid x type: {x}")
 
-        if not isinstance(y, int) and not isinstance(y, float):
+        if not np.isscalar(y):
             raise TypeError(f"Invalid y type: {y}")
 
         return super().__new__(cls, x, y)
 
     def into_int(self) -> Point[int]:
-        if isinstance(self.x, float) or isinstance(self.y, float):
-            return Point(int(self.x), int(self.y))
-
-        if isinstance(self.x, int) and isinstance(self.y, int):
-            return self
-
-        raise ValueError(f"Cannot convert point if not a suitable type: {type(self.x) =} {type(self.y) =}")
+        return Point(int(self.x), int(self.y))
 
     def invert(self) -> Point[T]:
         """Invert point axis"""

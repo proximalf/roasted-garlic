@@ -1,3 +1,4 @@
+from pennyio.selection.point import Point
 import logging
 from pathlib import Path
 from typing import Collection, List, Tuple
@@ -16,6 +17,23 @@ output = Path(__file__).parent.parent / "test-output"
 
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 
+def test_point() -> None:
+
+    assert Point(1, 2) == (1, 2)
+    assert Point(1.3, 2.6) == (1.3, 2.6)
+    assert Point(1, 2.6) == (1, 2.6)
+    assert Point(np.int16(12), np.int16(8)) == (12, 8)
+    try:
+        Point("12", "9")
+        raise
+    except Exception:
+        pass
+
+    try:
+        Point([12], [9])
+        raise
+    except Exception:
+        pass
 
 def plot_line_profile(lines: Collection[SelectionArea]) -> None:
 
@@ -166,4 +184,5 @@ def test_selections() -> None:
 
 
 if __name__ == "__main__":
+    test_point()
     test_selections()

@@ -1,6 +1,6 @@
 # pennyio (image operations)
 
-Collection of frequently encountered operations at work.
+Collection of frequently encountered operations and an opinionated implementation.
 
 Opencv is used for the file operations.
 
@@ -8,7 +8,7 @@ Opencv is used for the file operations.
 
 Add to dependencies:
 ```
-"pennyio @ git+https://github.com/proximalf/roasted-garlic",
+"pennyio @ git+https://github.com/proximalf/roasted-garlic"
 ```
 
 ### CLI installation
@@ -21,7 +21,13 @@ uv tool install --with "pennyio[cli] @ git+https://github.com/proximalf/roasted-
 
 ## Content
 
-### Format
+    
+- load_image / save_image
+Single function all formats load / save. 
+When saving, the suffix will be used to determine write format.
+
+- ImageFormat
+`ImageFormat.format` - Static method to determine an images format.
 `determine_image_format` - Function returns an ImageFormat Enum, which should help processing images of different dtypes, such as when plotting a histogram.
 
 ### Selection
